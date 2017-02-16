@@ -1,8 +1,10 @@
 #pragma once
 #include "model.h"
+#include "puyopuyo.h"
 
 
-//虎クラス。
+enum MapState{None = 0,PUYO};
+
 class Feild {
 public:
 	//コンストラクタ
@@ -12,7 +14,7 @@ public:
 	//初期化。
 	void Init(LPDIRECT3DDEVICE9 pd3dDevice);
 	//更新。
-	void Update();
+	void Update(PuyoPuyo*);
 	//描画。
 	void Render(
 		LPDIRECT3DDEVICE9 pd3dDevice,
@@ -27,8 +29,18 @@ public:
 	void Release();
 	//座標を設定。
 	void SetPosition(D3DXVECTOR3 pos);
+
+	int GetMap(int x, int y);
+
+	bool SetMap(int x, int y);
+
+	void SetGameOverDec(bool flg){
+		gameoverflg = flg;
+	}
+
 private:
 	D3DXVECTOR3				position;		//座標。
+	D3DXVECTOR3				scale;
 	D3DXMATRIX				mWorld;			//ワールド行列。
 	D3DXMATRIX				mRotation;		//回転行列。
 	Model                   model;
@@ -36,5 +48,6 @@ private:
 	LPDIRECT3DTEXTURE9*		textures;		//テクスチャ。
 	DWORD					numMaterial;	//マテリアルの数。
 	ID3DXEffect*			effect;			//エフェクト。
-
+	int						map[TATE][YOKO];
+	bool					gameoverflg;
 };

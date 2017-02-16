@@ -1,10 +1,7 @@
 #pragma once
 
-class Unity;
+class Puyo;
 
-/*!
-*@brief	カメラクラス。
-*/
 class Camera {
 public:
 	Camera();
@@ -90,7 +87,7 @@ public:
 		return projectionMatrix;
 	}
 	void Update();
-	void Init(Unity* unity);
+	void Init(/*Unity* unity*/);
 private:
 	D3DXMATRIX				viewMatrix;			//!<ビュー行列。カメラ行列とも言う。
 	D3DXMATRIX				projectionMatrix;	//!<プロジェクション行列。ビュー空間から射影空間に変換する行列。
@@ -100,6 +97,6 @@ private:
 	float					Far;				//!<遠平面。
 	float					Near;				//!<近平面。
 	float					aspect;				//!<アスペクト比
-	Unity*					unity;
+	Puyo*					puyo;
 	D3DXMATRIX				mWorld;			//ワールド行列。
 };

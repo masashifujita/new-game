@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "model.h"
 
+extern Camera g_camera;
+
+
 Model::Model()
 {
 	mesh = NULL;
@@ -14,15 +17,22 @@ Model::~Model()
 
 }
 
-void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice, const char* model)
+void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 {
 	//Xファイルをロード。
 	LPD3DXBUFFER pD3DXMtrlBuffer;
+
 	//Xファイルのロード。
-	D3DXLoadMeshFromX(model, D3DXMESH_SYSTEMMEM,
-		pd3dDevice, NULL,
-		&pD3DXMtrlBuffer, NULL, &numMaterial,
+	D3DXLoadMeshFromX(
+		model, 
+		D3DXMESH_SYSTEMMEM,
+		pd3dDevice, 
+		NULL,
+		&pD3DXMtrlBuffer, 
+		NULL, 
+		&numMaterial,
 		&mesh);
+
 	// マテリアルバッファを取得。
 	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)pD3DXMtrlBuffer->GetBufferPointer();
 	//テクスチャをロード。
@@ -57,7 +67,7 @@ void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice, const char* model)
 		MessageBox(NULL, (char*)(compileErrorBuffer->GetBufferPointer()), "error", MB_OK);
 		std::abort();
 	}
-
+	camera = &g_camera;
 }
 
 void Model::Render(
@@ -69,7 +79,8 @@ void Model::Render(
 	D3DXVECTOR4	 ambientLight,
 	int numDiffuseLight,
 	D3DXMATRIX	World,
-	D3DXMATRIX	Rotation)
+	D3DXMATRIX	Rotation
+	)
 {
 	effect->SetTechnique("SkinModel");
 	effect->Begin(NULL, D3DXFX_DONOTSAVESHADERSTATE);
@@ -86,13 +97,16 @@ void Model::Render(
 	effect->SetVectorArray("g_diffuseLightDirection", diffuseLightDirection, numDiffuseLight);
 	//ライトのカラーを転送。
 	effect->SetVectorArray("g_diffuseLightColor", diffuseLightColor, numDiffuseLight);
+
+	effect->SetVector("g_eyePos", &(D3DXVECTOR4)camera->GetEyePt());
+
 	//環境光を設定。
 	effect->SetVector("g_ambientLight", &ambientLight);
 	for (DWORD i = 0; i < numMaterial; i++)
 	{
 		effect->SetTexture("g_diffuseTexture", textures[i]);
 		effect->CommitChanges();						//この関数を呼び出すことで、データの転送が確定する。描画を行う前に一回だけ呼び出す。
-		// Draw the mesh subset
+		
 		mesh->DrawSubset(i);
 	}
 	effect->EndPass();

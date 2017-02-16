@@ -1,4 +1,4 @@
-#include "stdafx.h";
+#include "stdafx.h"
 #include "light.h"
 
 Light::Light(){}
@@ -10,7 +10,6 @@ void Light::Init()
 	//ƒ‰ƒCƒg‚Ì‰Šú‰»
 	ZeroMemory(diffuseLightDirection, sizeof(diffuseLightDirection));
 	ZeroMemory(diffuseLightColor, sizeof(diffuseLightColor));
-
 }
 
 void Light::Update()
@@ -27,5 +26,5 @@ void Light::Update()
 	diffuseLightColor[3] = D3DXVECTOR4(0.2f, 0.2f, 0.2f, 1.0f);
 
 	//ŠÂ‹«ŒõB
-	ambientLight = D3DXVECTOR4(0.5f, 0.5f, 0.5f, 1.0f);
+	ambientLight = D3DXVECTOR4(0.1f, 0.1f, 0.1f, 1.0f);
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "feild.h"
+#include "puyo.h"
 
 //コンストラクタ
 Feild::Feild()
@@ -7,33 +8,53 @@ Feild::Feild()
 	//初期化。
 	D3DXMatrixIdentity(&mWorld);
 	D3DXMatrixIdentity(&mRotation);
-	position.x = 0.0f;
-	position.y = 0.0f;
-	position.z = 0.0f;
+	position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 }
+
 //デストラクタ
 Feild::~Feild()
 {
 	Release();
 }
-//座標を設定。
-void Feild::SetPosition(D3DXVECTOR3 pos)
-{
-	position = pos;
-}
+
 //初期化。
 void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 {
+	for (short i = 0; i < TATE; i++)
+	{
+		for (short j = 0; j < YOKO; j++)
+		{
+			map[i][j] = MapState::None;
+		}
+	}
 	model.Init(g_pd3dDevice, "court.x");
+	gameoverflg = false;
 }
+
 //更新。
-void Feild::Update()
+void Feild::Update(PuyoPuyo* puyopuyo)
 {
+	if (gameoverflg==true)
+	{
+		Puyo** puyo;
+		puyo = puyopuyo->GetPuyoArray();
+		for (short i = 0; i < 2; i++){
+			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y()) == MapState::PUYO)
+			{
+				// ゲームオーバー処理
+				MessageBox(nullptr, ("ゲームはクリアされましたっと"), ("Message"), MB_OK);
+				abort();
+				break;
+			}
+		}
+	}
+
 	//ワールド行列の更新。
 	D3DXMatrixTranslation(&mWorld, position.x, position.y, position.z);
-
 }
+
 //描画。
+
 void Feild::Render(
 	LPDIRECT3DDEVICE9 pd3dDevice,
 	D3DXMATRIX viewMatrix,
@@ -54,8 +75,24 @@ void Feild::Render(
 		mWorld,
 		mRotation);
 }
+
 //開放。
 void Feild::Release()
 {
 	model.Release();
+}
+
+int Feild::GetMap(int x, int y)
+{
+	return map[y][x];
+}
+
+// マップの指定した位置にぷよを埋め込む関数
+bool Feild::SetMap(int x, int y)
+{
+	map[y][x] = MapState::PUYO;
+	if (y <= 0){
+		return true;
+	}
+	return false;
 }

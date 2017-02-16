@@ -5,7 +5,8 @@
 #include <strsafe.h>
 #pragma warning( default : 4996 )
 #include <cstdlib>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "system.h";
-#include "camera.h";
-#include "light.h";
+#define GRIDSIZE	1.0

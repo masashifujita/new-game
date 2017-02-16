@@ -7,6 +7,7 @@ float4x4 g_worldMatrix;			//ワールド行列。
 float4x4 g_viewMatrix;			//ビュー行列。
 float4x4 g_projectionMatrix;	//プロジェクション行列。
 float4x4 g_rotationMatrix;		//回転行列。法線を回転させるために必要になる。ライティングするなら必須。
+float3   g_eyePos;
 
 #define DIFFUSE_LIGHT_NUM	4		//ディフューズライトの数。
 float4	g_diffuseLightDirection[DIFFUSE_LIGHT_NUM];	//ディフューズライトの方向。
@@ -37,6 +38,7 @@ struct VS_OUTPUT{
 	float4	color	: COLOR0;
 	float2	uv		: TEXCOORD0;
 	float3	normal	: TEXCOORD1;
+	float4	worldPos: TEXCOORD2;
 };
 
 /*!
@@ -47,6 +49,7 @@ VS_OUTPUT VSMain( VS_INPUT In )
 	VS_OUTPUT Out;
 	float4 pos; 
 	pos = mul( In.pos, g_worldMatrix );		//モデルのローカル空間からワールド空間に変換。
+	Out.worldPos = pos;
 	pos = mul( pos, g_viewMatrix );			//ワールド空間からビュー空間に変換。
 	pos = mul( pos, g_projectionMatrix );	//ビュー空間から射影空間に変換。
 	Out.pos = pos;
@@ -66,7 +69,15 @@ float4 PSMain( VS_OUTPUT In ) : COLOR
 		for( int i = 0; i < DIFFUSE_LIGHT_NUM; i++ ){
 			lig.xyz += max( 0.0f, dot(In.normal.xyz, -g_diffuseLightDirection[i].xyz) ) 
 					* g_diffuseLightColor[i].xyz;
+
+			float3 eye = normalize(g_eyePos - In.worldPos);
+			float3 R = -eye + 2.0f*dot(In.normal, eye)*In.normal;
+			float3 spec = max(0.0f, dot(R, -g_diffuseLightDirection[i]));
+			spec = pow(spec, 5.0f);
+
+			lig.xyz += spec;
 		}
+
 		lig += g_ambientLight;
 	}
 	float4 color = tex2D( g_diffuseTextureSampler, In.uv );

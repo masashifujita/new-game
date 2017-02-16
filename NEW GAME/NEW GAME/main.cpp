@@ -1,26 +1,29 @@
 #include "stdafx.h"
 #include "camera.h"
-#include "player.h"
+#include "puyopuyo.h"
 #include "feild.h"
 #include "light.h"
 #include "system.h"
+#include <list>
 
-Camera camera;				//カメラ。
-Unity unity;		//プレーヤー
-Feild feild;
+
+Camera g_camera;				//カメラ。
+std::list<PuyoPuyo*>	puyopuyoList;	//ぷよぷよのリスト。
+PuyoPuyo* nowPuyoPuyo = NULL;
+PuyoPuyo* nextPuyoPuyo = NULL;
+Feild g_feild;
 Light light;
-
+int puyopuyoTimer = 120;
 
 void Init()
 {
 	//ライトを初期化。
 	light.Init();
-	//プレイヤーの初期化
-	unity.Init(g_pd3dDevice);
+	
 	//カメラの初期化。
-	camera.Init(&unity);
+	g_camera.Init();
 	//フィールドの初期化
-	feild.Init(g_pd3dDevice);
+	g_feild.Init(g_pd3dDevice);
 }
 
 void Render()
@@ -30,20 +33,23 @@ void Render()
 	//シーンの描画開始。
 	g_pd3dDevice->BeginScene();
 	//プレーヤーを描画。
-	unity.Render(
-		g_pd3dDevice,
-		camera.GetViewMatrix(),
-		camera.GetProjectionMatrix(),
-		light.GetLightDirection(),
-		light.GetLightColor(),
-		light.GetambientLight(),
-		LIGHT_NUM
-		);
+	for (auto& puyopuyo : puyopuyoList)
+	{
+		puyopuyo->Render(g_pd3dDevice,
+			g_camera.GetViewMatrix(),
+			g_camera.GetProjectionMatrix(),
+			light.GetLightDirection(),
+			light.GetLightColor(),
+			light.GetambientLight(),
+			LIGHT_NUM
+			);
+	}
+	 
 
 	//フィールドを描画
-	feild.Render(g_pd3dDevice,
-		camera.GetViewMatrix(),
-		camera.GetProjectionMatrix(),
+	g_feild.Render(g_pd3dDevice,
+		g_camera.GetViewMatrix(),
+		g_camera.GetProjectionMatrix(),
 		light.GetLightDirection(),
 		light.GetLightColor(),
 		light.GetambientLight(),
@@ -58,21 +64,35 @@ void Render()
 
 void Update()
 {
+
+	if (nowPuyoPuyo == NULL)
+	{
+		PuyoPuyo* puyopuyo = new PuyoPuyo;
+		nowPuyoPuyo = puyopuyo;
+		puyopuyo->Init(g_pd3dDevice);
+		puyopuyoList.push_back(puyopuyo);
+	}
+	
 	//ライトの更新。
 	light.Update();
-
+	
 	//プレーヤーの更新。
-	unity.Update();
-	//カメラの更新
-	camera.Update();
+	nowPuyoPuyo->Update();
 	//フィールドの更新
-	feild.Update();
+	g_feild.Update(nowPuyoPuyo);
+	if (nowPuyoPuyo->GetDownFlg() == true){
+		nowPuyoPuyo = NULL;
+	}
+	//カメラの更新
+	g_camera.Update();
 }
 void Terminate()
 {
 	//プレーヤーの解放
-	unity.Release();
+	for (auto& puyopuyo : puyopuyoList){
+		puyopuyo->Release();
+		delete(puyopuyo);
+	}
 	//フィールドの解放
-	feild.Release();
+	g_feild.Release();
 }
-
