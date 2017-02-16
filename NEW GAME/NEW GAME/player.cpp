@@ -16,11 +16,6 @@ Unity::~Unity()
 {
 	Release();
 }
-//À•W‚ğİ’èB
-void Unity::SetPosition(D3DXVECTOR3 pos)
-{
-	position = pos;
-}
 //‰Šú‰»B
 void Unity::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 {
