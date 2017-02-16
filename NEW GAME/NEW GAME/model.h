@@ -1,11 +1,13 @@
 #pragma once
 #include "system.h"
 #include "camera.h"
+#include "shadowmap.h"
 
 #define TATE		10
 #define YOKO		6
 #define NANAME		6
 
+extern ShadowMap g_shadowmap;
 
 class Model
 {
@@ -25,7 +27,9 @@ public:
 		D3DXVECTOR4	 ambientLight,
 		int numDiffuseLight,
 		D3DXMATRIX	mWorld,
-		D3DXMATRIX	mRotation
+		D3DXMATRIX	mRotation,
+		bool isDrawShadowMap,
+		bool isRecieveShadow
 		);
 	LPD3DXMESH GetMesh()
 	{

@@ -21,7 +21,9 @@ public:
 		D3DXVECTOR4* diffuseLightDirection,
 		D3DXVECTOR4* diffuseLightColor,
 		D3DXVECTOR4	 ambientLight,
-		int numDiffuseLight
+		int numDiffuseLight,
+		bool isDrawShadowMap,
+		bool isRecieveShadow
 		);
 	//開放。
 	void Release();
@@ -59,6 +61,11 @@ public:
 		ipos_Z = z;
 	}
 
+	const D3DXVECTOR3& GetPos()
+	{
+		return position;
+	}
+
 	//downmoveflgのゲッター
 	bool GetMoveFlg()
 	{
@@ -79,6 +86,8 @@ public:
 
 	//前に1マス移動。
 	void Sub_Z();
+
+	void Search();
 
 private:
 	D3DXVECTOR3				position;		//座標。
@@ -103,4 +112,5 @@ private:
 	float					time;
 	Feild*					feild;
 	bool					checkdownflg;
+	int						namber;
 };

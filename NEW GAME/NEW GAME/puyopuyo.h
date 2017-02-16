@@ -27,7 +27,9 @@ public:
 		D3DXVECTOR4* diffuseLightDirection,
 		D3DXVECTOR4* diffuseLightColor,
 		D3DXVECTOR4	 ambientLight,
-		int numDiffuseLight
+		int numDiffuseLight,
+		bool isDrawShadowMap,
+		bool isRecieveShadow
 		);
 	//äJï˙ÅB
 	void Release();

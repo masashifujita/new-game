@@ -9,4 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #define GRIDSIZE	1.0
+
+

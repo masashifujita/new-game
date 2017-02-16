@@ -93,6 +93,7 @@ void PuyoPuyo::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 			srand((unsigned int)time(NULL));					//rand‚Ì‰Šú‰»
 			rnd = rand() % NAMELIST_MAX;
 			this->puyo[row][col]->Init(pd3dDevice, nameList[rnd]);
+
 		}
 	}
 }
@@ -128,7 +129,10 @@ void PuyoPuyo::Render(
 	D3DXVECTOR4* diffuseLightDirection,
 	D3DXVECTOR4* diffuseLightColor,
 	D3DXVECTOR4	 ambientLight,
-	int numDiffuseLight
+	int numDiffuseLight,
+	bool isDrawShadowMap,
+	bool isRecieveShadow
+
 	)
 {
 	for (short row = 0; row < MAX_HEIGHT; row++)
@@ -141,7 +145,9 @@ void PuyoPuyo::Render(
 				diffuseLightDirection,
 				diffuseLightColor,
 				ambientLight,
-				numDiffuseLight
+				numDiffuseLight,
+				isDrawShadowMap,
+				isRecieveShadow
 				);
 		}
 	}

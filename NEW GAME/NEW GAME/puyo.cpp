@@ -17,6 +17,7 @@ Puyo::Puyo()
 	rot = D3DXQUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
 	checkdownflg = false;
 	downmoveflg = true;
+	namber = 1;
 }
 
 //デストラクタ
@@ -129,6 +130,11 @@ void Puyo::Sub_Z()
 	}
 }
 
+void Puyo::Search()
+{
+
+}
+
 void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,LPCSTR name)
 {
 	feild = &g_feild;
@@ -138,7 +144,7 @@ void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,LPCSTR name)
 
 void Puyo::Update()
 {
-	//DownMove()関数呼び出しm	
+	//DownMove()関数呼び出し
 	DownMove();
 
 
@@ -159,7 +165,9 @@ void Puyo::Render(
 	D3DXVECTOR4* diffuseLightDirection,
 	D3DXVECTOR4* diffuseLightColor,
 	D3DXVECTOR4	 ambientLight,
-	int numDiffuseLight
+	int numDiffuseLight,
+	bool isDrawShadowMap,
+	bool isRecieveShadow
 	)
 {
 	model.Render(pd3dDevice,
@@ -170,7 +178,9 @@ void Puyo::Render(
 		ambientLight,
 		numDiffuseLight,
 		world,
-		rotation
+		rotation,
+		isDrawShadowMap,
+		isRecieveShadow
 		);
 }
 

@@ -78,14 +78,25 @@ void Model::Render(
 	D3DXVECTOR4	 ambientLight,
 	int numDiffuseLight,
 	D3DXMATRIX	World,
-	D3DXMATRIX	Rotation
+	D3DXMATRIX	Rotation,
+	bool isDrawShadowMap,
+	bool isRecieveShadow
 	)
 {
-	effect->SetTechnique("SkinModel");
+	//D3DXMatrixTranslation()
+	if (!isDrawShadowMap)
+	{
+		effect->SetTechnique("SkinModel");
+	}
+	else
+	{
+		effect->SetTechnique("SkinModelRenderToShadowMap");
+	}
 	effect->Begin(NULL, D3DXFX_DONOTSAVESHADERSTATE);
 	effect->BeginPass(0);
 	//定数レジスタに設定するカラー。
 	D3DXVECTOR4 color(1.0f, 0.0f, 0.0f, 1.0f);
+	effect->SetInt("g_isShadowReciever", isRecieveShadow);
 	//ワールド行列の転送。
 	effect->SetMatrix("g_worldMatrix", &World);
 	//ビュー行列の転送。
@@ -101,6 +112,11 @@ void Model::Render(
 
 	//環境光を設定。
 	effect->SetVector("g_ambientLight", &ambientLight);
+	if (isRecieveShadow) {
+		effect->SetTexture("g_shadowMapTexture", g_shadowmap.GetTexture());
+		effect->SetMatrix("g_lightViewMatrix", &g_shadowmap.GetLightViewMatrix());
+		effect->SetMatrix("g_lightProjectionMatrix", &g_shadowmap.GetLightProjectionMatrix());
+	}
 	for (DWORD i = 0; i < numMaterial; i++)
 	{
 		effect->SetTexture("g_diffuseTexture", textures[i]);
@@ -110,7 +126,6 @@ void Model::Render(
 	}
 	effect->EndPass();
 	effect->End();
-
 }
 
 void Model::Release()
