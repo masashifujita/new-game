@@ -73,7 +73,7 @@ float4 PSMain( VS_OUTPUT In ) : COLOR
 			float3 eye = normalize(g_eyePos - In.worldPos);
 			float3 R = -eye + 2.0f*dot(In.normal, eye)*In.normal;
 			float3 spec = max(0.0f, dot(R, -g_diffuseLightDirection[i]));
-			spec = pow(spec, 5.0f);
+			spec = pow(spec, 2.0f);
 
 			lig.xyz += spec;
 		}

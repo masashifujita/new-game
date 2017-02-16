@@ -30,9 +30,9 @@ public:
 	//座標を設定。
 	void SetPosition(D3DXVECTOR3 pos);
 
-	int GetMap(int x, int y);
+	int GetMap(int, int, int);
 
-	bool SetMap(int x, int y);
+	bool SetMap(int, int, int);
 
 	void SetGameOverDec(bool flg){
 		gameoverflg = flg;
@@ -48,6 +48,6 @@ private:
 	LPDIRECT3DTEXTURE9*		textures;		//テクスチャ。
 	DWORD					numMaterial;	//マテリアルの数。
 	ID3DXEffect*			effect;			//エフェクト。
-	int						map[TATE][YOKO];
+	int						map[TATE][YOKO][NANAME];
 	bool					gameoverflg;
 };

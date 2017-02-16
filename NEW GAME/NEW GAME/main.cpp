@@ -5,6 +5,7 @@
 #include "light.h"
 #include "system.h"
 #include <list>
+#include "keyboard.h"
 
 
 Camera g_camera;				//カメラ。
@@ -14,6 +15,7 @@ PuyoPuyo* nextPuyoPuyo = NULL;
 Feild g_feild;
 Light light;
 int puyopuyoTimer = 120;
+KeyBoard g_keyboard;
 
 void Init()
 {
@@ -64,6 +66,8 @@ void Render()
 
 void Update()
 {
+	// キー状態の更新。
+	g_keyboard.Update();
 
 	if (nowPuyoPuyo == NULL)
 	{
@@ -80,7 +84,7 @@ void Update()
 	nowPuyoPuyo->Update();
 	//フィールドの更新
 	g_feild.Update(nowPuyoPuyo);
-	if (nowPuyoPuyo->GetDownFlg() == true){
+	if (nowPuyoPuyo->GetIsDownEnd() == true){
 		nowPuyoPuyo = NULL;
 	}
 	//カメラの更新

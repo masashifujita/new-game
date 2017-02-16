@@ -13,17 +13,17 @@ Camera::Camera()
 Camera::~Camera(){}
 
 //ƒJƒƒ‰‚Ì‰Šú‰»B
-void Camera::Init(/*Unity* unity*/)
+void Camera::Init()
 {
-	//this->unity = unity;
 	vEyePt = D3DXVECTOR3(0.0f, 7.0f, -20.0f);
 	vLookatPt = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	vUpVec = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	//Update();
+
 }
  
 void Camera::Update()
 {
+
 	D3DXMatrixLookAtLH(&viewMatrix, &vEyePt, &vLookatPt, &vUpVec);
 	D3DXMatrixPerspectiveFovLH(&projectionMatrix, D3DX_PI / 4, aspect, Near, Far);
 }

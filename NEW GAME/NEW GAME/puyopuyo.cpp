@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "puyopuyo.h"
 #include "puyo.h"
-
+#include "keyboard.h"
 
 #define SAFE_DELETE(instance) 		if (instance != NULL){delete instance; instance = NULL;}
+
+extern KeyBoard g_keyboard;
 
 const char PuyoPuyo::nameList[NAMELIST_MAX][FILENAME_MAX] = { 
 	"kyu_1.x",
@@ -13,7 +15,6 @@ const char PuyoPuyo::nameList[NAMELIST_MAX][FILENAME_MAX] = {
 	"kyu_4.x",
 };
 
-
 PuyoPuyo::PuyoPuyo()
 {
 	position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -21,36 +22,103 @@ PuyoPuyo::PuyoPuyo()
 
 PuyoPuyo::~PuyoPuyo(){}
 
+//ç∂âEÇ…à⁄ìÆÇ≥ÇπÇÈä÷êî
+void PuyoPuyo::SideMove()
+{
+	for (short row = 0; row < MAX_HEIGHT; row++){
+		for (short col = 0; col < MAX_WIDTH; col++){
+
+			if (!puyo[row][col]->GetMoveFlg()){
+				return;
+			}
+		}
+	}
+	if (g_keyboard.GetKeyTrigger(VK_UP))
+	{
+		for (short row = 0; row < MAX_HEIGHT; row++)
+		{
+			for (short col = 0; col < MAX_WIDTH; col++)
+			{
+				puyo[row][col]->Add_Z();
+			}
+		}
+	}
+	else if (g_keyboard.GetKeyTrigger(VK_DOWN))
+	{
+		for (short row = 0; row < MAX_HEIGHT; row++)
+		{
+			for (short col = 0; col < MAX_WIDTH; col++)
+			{
+				puyo[row][col]->Sub_Z();
+			}
+		}
+	}
+	if (g_keyboard.GetKeyTrigger(VK_LEFT))
+	{
+		for (short row = 0; row < MAX_HEIGHT; row++)
+		{
+			for (short col = 0; col < MAX_WIDTH; col++)
+			{
+				puyo[row][col]->Sub_X(col);
+			}
+		}
+	}
+	else if (g_keyboard.GetKeyTrigger(VK_RIGHT))
+	{
+		for (short row = 0; row < MAX_HEIGHT; row++) 
+		{
+			for (short col = 0; col < MAX_WIDTH; col++)
+			{
+				puyo[row][col]->Add_X(MAX_WIDTH - (col + 1));
+			}
+		}
+	}
+}
 
 void PuyoPuyo::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 {
 	rot = D3DXQUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
-
-	for (short i = 0; i < NUM; i++)
-	{
-		this->puyo[i] = new Puyo;
-		float pos = 0.0f;
-		pos = puyo[i]->GetiPos_X();
-		pos += 1.0f * i;
-		puyo[i]->SetPos_X(pos);
-		int rnd;
-		srand((unsigned int)time(NULL));					//randÇÃèâä˙âª
-		rnd = rand() % NAMELIST_MAX;
-		this->puyo[i]->Init(pd3dDevice,nameList[rnd]);
-		//this->puyo[i]->Init(pd3dDevice, nameList[i]);
+	for (short row = 0; row < MAX_HEIGHT; row++){
+		for (short col = 0; col < MAX_WIDTH; col++)
+		{
+			this->puyo[row][col] = new Puyo;
+			int pos_X = 0;
+			pos_X = puyo[row][col]->GetiPos_X();
+			pos_X += col;
+			puyo[row][col]->SetiPos_X(pos_X);
+			int pos_Y = puyo[row][col]->GetiPos_Y();
+			pos_Y += row;
+			puyo[row][col]->SetiPos_Y(pos_Y);
+			int rnd;
+			srand((unsigned int)time(NULL));					//randÇÃèâä˙âª
+			rnd = rand() % NAMELIST_MAX;
+			this->puyo[row][col]->Init(pd3dDevice, nameList[rnd]);
+		}
 	}
 }
 
 void PuyoPuyo::Update()
 {
-	for (short i = 0; i < NUM; i++)
+	SideMove();
+	bool MoveFlags[MAX_HEIGHT][MAX_WIDTH];
+	for (short row = 0; row < MAX_HEIGHT;row++)
 	{
-		this->puyo[i]->Update();
-		if (puyo[i]->GetMoveFlg() == false)
-		{
-			downflg = true;
+		for (short col = 0; col < MAX_WIDTH;col++){
+			puyo[row][col]->Update();
+			MoveFlags[row][col] = puyo[row][col]->GetMoveFlg();
 		}
 	}
+	IsDownEnd = true;
+	for (short row = 0; row < MAX_HEIGHT; row++)
+	{
+		for (short col = 0; col < MAX_WIDTH; col++){
+			if (MoveFlags[row][col]){
+				IsDownEnd = false;
+				break;
+			}
+		}
+	}
+
 }
 
 void PuyoPuyo::Render(
@@ -63,25 +131,31 @@ void PuyoPuyo::Render(
 	int numDiffuseLight
 	)
 {
-	for (short i = 0; i < NUM; i++)
+	for (short row = 0; row < MAX_HEIGHT; row++)
 	{
-		this->puyo[i]->Render(
-			pd3dDevice,
-			viewMatrix,
-			projMatrix,
-			diffuseLightDirection,
-			diffuseLightColor,
-			ambientLight,
-			numDiffuseLight
-			);
+		for (short col = 0; col < MAX_WIDTH; col++){
+			puyo[row][col]->Render(
+				pd3dDevice,
+				viewMatrix,
+				projMatrix,
+				diffuseLightDirection,
+				diffuseLightColor,
+				ambientLight,
+				numDiffuseLight
+				);
+		}
 	}
 
 }
 
 void PuyoPuyo::Release()
 {
-	for (short i = 0; i < NUM; i++)
+	for (short row = 0; row < MAX_HEIGHT; row++)
 	{
-		SAFE_DELETE(puyo[i]);
+		for (short col = 0; col < MAX_WIDTH; col++){
+			puyo[row][col]->Release();
+
+			SAFE_DELETE(puyo[row][col]);
+		}
 	}
 }

@@ -3,8 +3,8 @@
 #include "camera.h"
 
 #define TATE		10
-#define YOKO		10
-#define NANAME		10
+#define YOKO		6
+#define NANAME		6
 
 
 class Model

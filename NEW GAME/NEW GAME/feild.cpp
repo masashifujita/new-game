@@ -24,7 +24,10 @@ void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 	{
 		for (short j = 0; j < YOKO; j++)
 		{
-			map[i][j] = MapState::None;
+			for (short k = 0; k < NANAME; k++)
+			{
+				map[i][j][k] = MapState::None;
+			}
 		}
 	}
 	model.Init(g_pd3dDevice, "court.x");
@@ -39,7 +42,7 @@ void Feild::Update(PuyoPuyo* puyopuyo)
 		Puyo** puyo;
 		puyo = puyopuyo->GetPuyoArray();
 		for (short i = 0; i < 2; i++){
-			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y()) == MapState::PUYO)
+			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y(),puyo[i]->GetiPos_Z()) == MapState::PUYO)
 			{
 				// ゲームオーバー処理
 				MessageBox(nullptr, ("ゲームはクリアされましたっと"), ("Message"), MB_OK);
@@ -82,15 +85,15 @@ void Feild::Release()
 	model.Release();
 }
 
-int Feild::GetMap(int x, int y)
+int Feild::GetMap(int x, int y,int z)
 {
-	return map[y][x];
+	return map[y][x][z];
 }
 
 // マップの指定した位置にぷよを埋め込む関数
-bool Feild::SetMap(int x, int y)
+bool Feild::SetMap(int x, int y,int z)
 {
-	map[y][x] = MapState::PUYO;
+	map[y][x][z] = MapState::PUYO;
 	if (y <= 0){
 		return true;
 	}

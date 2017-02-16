@@ -87,16 +87,16 @@ public:
 		return projectionMatrix;
 	}
 	void Update();
-	void Init(/*Unity* unity*/);
+	void Init();
 private:
-	D3DXMATRIX				viewMatrix;			//!<ビュー行列。カメラ行列とも言う。
-	D3DXMATRIX				projectionMatrix;	//!<プロジェクション行列。ビュー空間から射影空間に変換する行列。
-	D3DXVECTOR3				vEyePt;				//!<カメラの視点。この辺りはメンバ変数に変更する。
-	D3DXVECTOR3				vLookatPt;			//!<カメラの注視点。どこを見ているかという情報。この辺りはメンバ変数に変更する。
-	D3DXVECTOR3				vUpVec;				//!<カメラの上方向。基本的にY方向でかまわない。基本的には・・・。この辺りはメンバ変数に変更する。
-	float					Far;				//!<遠平面。
-	float					Near;				//!<近平面。
-	float					aspect;				//!<アスペクト比
+	D3DXMATRIX				viewMatrix;			//ビュー行列。カメラ行列とも言う。
+	D3DXMATRIX				projectionMatrix;	//プロジェクション行列。ビュー空間から射影空間に変換する行列。
+	D3DXVECTOR3				vEyePt;				//カメラの視点。この辺りはメンバ変数に変更する。
+	D3DXVECTOR3				vLookatPt;			//カメラの注視点。どこを見ているかという情報。この辺りはメンバ変数に変更する。
+	D3DXVECTOR3				vUpVec;				//カメラの上方向。基本的にY方向でかまわない。基本的には・・・。この辺りはメンバ変数に変更する。
+	float					Far;				//遠平面。
+	float					Near;				//近平面。
+	float					aspect;				//アスペクト比
 	Puyo*					puyo;
 	D3DXMATRIX				mWorld;			//ワールド行列。
 };

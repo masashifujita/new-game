@@ -30,21 +30,36 @@ public:
 
 	void DownMove();
 
-	float GetiPos_X()
+	int GetiPos_X()
 	{
 		return ipos_X;
 	}
 
-	float GetiPos_Y()
+	int GetiPos_Y()
 	{
 		return ipos_Y;
 	}
 
-	void SetPos_X(int x)
+	int GetiPos_Z()
+	{
+		return ipos_Z;
+	}
+
+	void SetiPos_X(int x)
 	{
 		ipos_X = x;
 	}
 
+	void SetiPos_Y(int y){
+		ipos_Y = y;
+	}
+
+	void SetiPos_Z(int z)
+	{
+		ipos_Z = z;
+	}
+
+	//downmoveflgのゲッター
 	bool GetMoveFlg()
 	{
 		return downmoveflg;
@@ -53,8 +68,17 @@ public:
 	//時間を管理する関数
 	bool Time();
 
-	void SideMove();
+	// 右に1マス移動。
+	void Add_X(short);
 
+	// 左に1マス移動。
+	void Sub_X(short);
+
+	//後ろに1マス移動。
+	void Add_Z();
+
+	//前に1マス移動。
+	void Sub_Z();
 
 private:
 	D3DXVECTOR3				position;		//座標。
@@ -71,7 +95,7 @@ private:
 	D3DXMATRIX				worldMatrix;										
 	D3DXMATRIX				world;
 	D3DXMATRIX				rotation;
-	bool					downmoveflg;
+	bool					downmoveflg;	//ぷよが落下しているか。
 	int						ipos_X;
 	int						ipos_Y;
 	int						ipos_Z;
@@ -79,6 +103,4 @@ private:
 	float					time;
 	Feild*					feild;
 	bool					checkdownflg;
-	int						pos_X;
-	int						pos_Y;
 };

@@ -3,7 +3,6 @@
 
 extern Camera g_camera;
 
-
 Model::Model()
 {
 	mesh = NULL;
@@ -97,7 +96,7 @@ void Model::Render(
 	effect->SetVectorArray("g_diffuseLightDirection", diffuseLightDirection, numDiffuseLight);
 	//ライトのカラーを転送。
 	effect->SetVectorArray("g_diffuseLightColor", diffuseLightColor, numDiffuseLight);
-
+	
 	effect->SetVector("g_eyePos", &(D3DXVECTOR4)camera->GetEyePt());
 
 	//環境光を設定。

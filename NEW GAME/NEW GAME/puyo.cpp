@@ -10,14 +10,13 @@ Puyo::Puyo()
 	D3DXMatrixIdentity(&world);
 	D3DXMatrixIdentity(&rotation);
 	movespeed = D3DXVECTOR3(0.0f, 0.03f, 0.0f);
-	//position = D3DXVECTOR3(0.0f, 10.0f, 0.0f);
 	lefttop = D3DXVECTOR2(0.0, TATE * GRIDSIZE);
 	ipos_X = 0;
 	ipos_Y = 0;
+	ipos_Z = 0;
 	rot = D3DXQUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
-	downmoveflg = true;
 	checkdownflg = false;
-	pos_X = 0;
+	downmoveflg = true;
 }
 
 //デストラクタ
@@ -41,7 +40,7 @@ void Puyo::UpdateWorldMatrix(const D3DXVECTOR3& trans, const D3DXQUATERNION& rot
 //時間を管理する関数
 bool Puyo::Time()
 {
-	time += 1.0f / 60.0f;
+	time += 2.0f / 60.0f;
 	if (time >= 1.0f)
 	{
 		time = 0.0f;			//時間のリセット
@@ -58,16 +57,16 @@ void Puyo::DownMove()
 	{
 		//何フレームかたったらここの処理を行う。
 		ipos_Y += movespeed_y;
-		
+
 		// あたり判定
-		if (feild->GetMap(ipos_X, ipos_Y) == MapState::PUYO)
+		if (feild->GetMap(ipos_X, ipos_Y,ipos_Z) == MapState::PUYO)
 		{
 			//現在のipos_Yの場所にpuyoがある場合の処理
 			downmoveflg = false;
-			
+
 			//feild->SetMap(ipos_X,ipos_Y - 1):この処理でPuyoがあるipos_Yの一か所上にpuyoをセットする。
-			feild->SetGameOverDec(feild->SetMap(ipos_X,ipos_Y - 1));
-			
+			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y - 1,ipos_Z));
+
 			//updataでpositionを決める計算をするのでipos_Yを一か所上に移動させる必要がある。
 			ipos_Y--;
 		}
@@ -76,31 +75,59 @@ void Puyo::DownMove()
 			//現在のipos_Yの場所が一番下の段だった場合の処理
 			downmoveflg = false;
 
-			feild->SetGameOverDec(feild->SetMap(ipos_X,ipos_Y));
+			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y,ipos_Z));
 		}
 	}
 }
 
-void Puyo::SideMove()
+//右に移動させる関数
+void Puyo::Add_X(short num)
 {
-	if (GetAsyncKeyState(VK_UP))
+	if (ipos_X + num < YOKO / 2)													//右側に行った時の判定
 	{
-		position.z += 0.1f;
-	}
-	else if (GetAsyncKeyState(VK_DOWN))
-	{
-		position.z -= 0.1f;
-	}
-	if (GetAsyncKeyState(VK_LEFT) && ipos_X > -4)
-	{
-		ipos_X -= 1;
-	}
-	else if (GetAsyncKeyState(VK_RIGHT) && ipos_X < 5)
-	{
-		ipos_X += 1;
+		if (feild->GetMap(ipos_X + num + 1, ipos_Y,ipos_Z) != MapState::PUYO)		//右にpuyoがない時の判定
+		{
+			//右側にpuyoがない時puyopuyoを右に移動させる。
+			ipos_X++;
+		}
 	}
 }
 
+//左に移動させる関数
+void Puyo::Sub_X(short num)													//num :　現在のpuyoの要素番号？
+{
+	if (ipos_X - num > (YOKO / -2) + 1)													//左端に行った時の判定							
+	{
+		if (feild->GetMap(ipos_X - num - 1, ipos_Y,ipos_Z) != MapState::PUYO)		//左にpuyoがない時の判定
+		{
+			//左側にpuyoがない時puyopuyoを左に移動させる。
+			ipos_X--;
+		}	
+	}
+}
+
+//後ろに1マス移動する関数
+void Puyo::Add_Z()
+{
+	if (ipos_Z < NANAME / 2)
+	{
+		if (feild->GetMap(ipos_X, ipos_Y, ipos_Z + 1) != MapState::PUYO)
+		{
+			ipos_Z++;
+		}
+	}
+}
+
+//前に1マス移動する関数
+void Puyo::Sub_Z()
+{
+	if (ipos_Z > (NANAME / -2) + 1){
+		if (feild->GetMap(ipos_X, ipos_Y, ipos_Z - 1) != MapState::PUYO)		//左にpuyoがない時の判定
+		{
+			ipos_Z--;
+		}
+	}
+}
 
 void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,LPCSTR name)
 {
@@ -111,17 +138,14 @@ void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,LPCSTR name)
 
 void Puyo::Update()
 {
-	//DownMove()関数呼び出し
+	//DownMove()関数呼び出しm	
 	DownMove();
 
-	if (downmoveflg == true)
-	{
-		SideMove();
-	}
 
 	//ここでiposをpositionに変換する。
 	position.x = ipos_X * GRIDSIZE + GRIDSIZE * 0.5;
 	position.y = lefttop.y - (ipos_Y * GRIDSIZE) - GRIDSIZE * 0.5;
+	position.z = ipos_Z;
 
 	//ワールド行列の更新。
 	UpdateWorldMatrix(position, rot, D3DXVECTOR3(1.0f, 1.0f, 1.0f));
