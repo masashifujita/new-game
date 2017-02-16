@@ -50,6 +50,11 @@ public:
 		return &puyo[0][0];
 	}
 
+	int* GetNum()
+	{
+		return &num[0][0];
+	}
+
 private:
 	Puyo*					puyo[MAX_HEIGHT][MAX_WIDTH];
 	D3DXVECTOR3				position;		//座標。
@@ -57,6 +62,7 @@ private:
 	float					targetAngleY;
 	D3DXQUATERNION			rot;
 	bool					IsDownEnd;	// 落下終了か。
+	int						num[MAX_HEIGHT][MAX_WIDTH];
 public:
 	static const char nameList[NAMELIST_MAX][FILENAME_MAX];
 private:

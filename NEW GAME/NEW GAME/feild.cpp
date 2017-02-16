@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "feild.h"
 #include "puyo.h"
+#include "puyopuyo.h"
+
+extern Puyo puyo;
+extern PuyoPuyo* nowPuyoPuyo;
+
 
 //コンストラクタ
 Feild::Feild()
@@ -24,10 +29,8 @@ void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 	{
 		for (short j = 0; j < YOKO; j++)
 		{
-			for (short k = 0; k < NANAME; k++)
-			{
-				map[i][j][k] = MapState::None;
-			}
+			map[i][j] = MapState::None;
+			Number[i][j] = MapState::None;
 		}
 	}
 	model.Init(g_pd3dDevice, "court.x");
@@ -42,10 +45,10 @@ void Feild::Update(PuyoPuyo* puyopuyo)
 		Puyo** puyo;
 		puyo = puyopuyo->GetPuyoArray();
 		for (short i = 0; i < 2; i++){
-			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y(),puyo[i]->GetiPos_Z()) == MapState::PUYO)
+			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y()) == MapState::PUYO)
 			{
 				// ゲームオーバー処理
-				MessageBox(nullptr, ("ゲームはクリアされましたっと"), ("Message"), MB_OK);
+				MessageBox(nullptr, ("げーむおーばー"), ("Message"), MB_OK);
 				abort();
 				break;
 			}
@@ -90,17 +93,84 @@ void Feild::Release()
 	model.Release();
 }
 
-int Feild::GetMap(int x, int y,int z)
+int Feild::GetMap(int x, int y)
 {
-	return map[y][x][z];
+	return map[y][x];
 }
 
 // マップの指定した位置にぷよを埋め込む関数
-bool Feild::SetMap(int x, int y,int z)
+bool Feild::SetMap(int x, int y)
 {
-	map[y][x][z] = MapState::PUYO;
+	map[y][x] = MapState::PUYO;
 	if (y <= 0){
 		return true;
 	}
 	return false;
+}
+
+void Feild::SetMapNull(int x, int y)
+{
+	map[y][x] = MapState::None;
+}
+
+void Feild::SetNumMap(int x, int y,int num)
+{
+	Number[y][x] = num;
+}
+
+int Feild::Conbine(int x,int y,int num)
+{
+	if (Number[y][x] != num)
+		return 0;
+	int cnt = 0;
+	if (y > 0)
+	{
+		cnt += Conbine(x + 1, y, num);
+		cnt += Conbine(x - 1, y, num);
+		cnt += Conbine(x, y + 1, num);
+		cnt += Conbine(x, y - 1, num);
+		return cnt;
+	}
+}
+
+bool Feild::Sakujo()
+{
+	//for (int i = TATE - 1; i >= 0; i--)
+	//{
+	//	for (int j = 0; j < YOKO; j++)
+	//	{
+	//		int ret = Conbine(j, i, Number[i][j]);
+	//		if (ret >= 4)
+	//		{
+	//			return true;
+	//		}
+	//		else
+	//		{
+	//			return false;
+	//		}
+	//	}
+	//}
+	int cnt = 0;
+	for (short i = TATE - 1; i <= 0; i--)
+	{
+		for (short j = 0; j < YOKO; j++)
+		{
+			if (Number[i][j] = Number[i][j + 1])
+			{
+				cnt++;
+				if (cnt <= 4)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
 }

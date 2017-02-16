@@ -42,23 +42,43 @@ sampler_state
 	AddressV = CLAMP;
 };
 
+bool g_isHasNormalMap;			//法線マップ保持している？
+
+//法線マップ
+texture g_normalTexture;		//法線マップ。
+sampler g_normalMapSampler =
+sampler_state
+{
+	Texture = <g_normalTexture>;
+	MipFilter = LINEAR;
+	MinFilter = LINEAR;
+	MagFilter = LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
 
 struct VS_INPUT{
-	float4	pos		: POSITION;
-	float4	color	: COLOR0;
-	float3	normal	: NORMAL0;
-	float2	uv		: TEXCOORD0;
+	float4	pos				: POSITION;
+	float4	color			: COLOR0;
+	float3	normal			: NORMAL0;
+	float2	uv				: TEXCOORD0;
+	float3	tangent			: TANGENT;		//接ベクトル
+	float3  Tex0            : TEXCOORD0;
 };
 
 struct VS_OUTPUT{
-	float4	pos		: POSITION;
-	float4	color	: COLOR0;
-	float2	uv		: TEXCOORD0;
-	float3	normal	: TEXCOORD1;
-	float4	worldPos: TEXCOORD2;
+	float4	pos				: POSITION;
+	float4	color			: COLOR0;
+	float3	normal			: NORMAL;
+	float2	uv				: TEXCOORD0;
+	float3	tangent			: TEXCOORD1;	//接ベクトル
+	float4	worldPos		: TEXCOORD2;
 	float4	lightViewPos 	: TEXCOORD3;		//ワールド空間->ライトビュー空間->ライト射影空間に変換された座標。
-
+	float2  Tex0   			: TEXCOORD4;
 };
+
+
 
 /*!
  *@brief	頂点シェーダー。
@@ -106,6 +126,8 @@ float4 PSMain( VS_OUTPUT In ) : COLOR
 		lig += g_ambientLight;
 	}
 	float4 color = tex2D( g_diffuseTextureSampler, In.uv );
+	float3 normal = In.normal;
+
 	if (g_isShadowReciever == 1){
 		//射影空間(スクリーン座標系)に変換された座標はw成分で割ってやると(-1.0f～1.0)の範囲の正規化座標系になる。
 		//これをUV座標系(0.0～1.0)に変換して、シャドウマップをフェッチするためのUVとして活用する。
@@ -115,7 +137,31 @@ float4 PSMain( VS_OUTPUT In ) : COLOR
 		float4 shadowVal = tex2D(g_shadowMapTextureSampler, shadowMapUV);	//シャドウマップは影が落ちているところはグレースケールになっている。
 			color *= shadowVal;
 	}
+
+	if (g_isHasNormalMap){
+		//法線マップがある。
+		float3 tangent = normalize(In.tangent);
+			float3 binSpaceNormal = tex2D(g_normalMapSampler, In.Tex0);
+			float4x4 tangentSpaceMatrix;
+		//法線とタンジェントから従法線を求める
+		float3 biNormal = normalize(cross(tangent, normal));
+			//タンジェントスペースからワールドスペースに変換する行列を求める。
+			tangentSpaceMatrix[0] = float4(tangent, 0.0f);
+		tangentSpaceMatrix[1] = float4(biNormal, 0.0f);
+		tangentSpaceMatrix[2] = float4(normal, 0.0f);
+		tangentSpaceMatrix[3] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		//-1.0～1.0の範囲にマッピングする。
+		binSpaceNormal = (binSpaceNormal * 2.0f) - 1.0f;
+		//タンジェントスペースからワールドスペースの法線に変換する。
+		normal = tangentSpaceMatrix[0] * binSpaceNormal.x + tangentSpaceMatrix[1] * binSpaceNormal.y + tangentSpaceMatrix[2] * binSpaceNormal.z;
+	}
+
+	float4 ligs = lig;
+
 	color.xyz *= lig;
+	
+	color *= ligs;
+	
 	return color;
 }
 
@@ -141,3 +187,4 @@ technique SkinModelRenderToShadowMap
 		PixelShader		= compile ps_3_0 PSRenderToShadowMapMain();
 	}
 };
+

@@ -151,5 +151,4 @@ void Model::Release()
 		effect->Release();
 		effect = NULL;
 	}
-
 }

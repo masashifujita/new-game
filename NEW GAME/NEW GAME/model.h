@@ -36,10 +36,16 @@ public:
 		return mesh;
 	}
 	void Release();
+	
+	void SetNormalMap(LPDIRECT3DTEXTURE9 normalMap)
+	{
+		this->normalMap = normalMap;
+	}
 private:
 	LPD3DXMESH				mesh;			//メッシュ。
 	LPDIRECT3DTEXTURE9*		textures;		//テクスチャ。
 	DWORD					numMaterial;	//マテリアルの数。
 	ID3DXEffect*			effect;			//エフェクト。
 	Camera*					camera;
+	LPDIRECT3DTEXTURE9 normalMap = NULL;		//法線マップ。
 };
