@@ -3,10 +3,6 @@
 #include "camera.h"
 #include "shadowmap.h"
 
-#define TATE		10
-#define YOKO		6
-#define NANAME		6
-
 extern ShadowMap g_shadowmap;
 
 class Model

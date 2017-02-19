@@ -36,9 +36,9 @@ public:
 
 	bool SetMap(int, int);
 
-	bool SetMap(int, int,int);
-
 	void SetMapNull(int,int);
+
+	void Con();
 
 	void SetGameOverDec(bool flg){
 		gameoverflg = flg;
@@ -49,6 +49,11 @@ public:
 	void SetNumMap(int, int,int);
 
 	int Conbine(int,int,int);
+
+	int* GetNum()
+	{
+		return &Number[0][0];
+	}
 
 private:
 	D3DXVECTOR3				position;		//ç¿ïWÅB
@@ -63,4 +68,5 @@ private:
 	int						map[TATE][YOKO];
 	bool					gameoverflg;
 	int						Number[TATE][YOKO];
+	bool					cmb[TATE][YOKO];
 };

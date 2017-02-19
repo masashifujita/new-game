@@ -86,6 +86,7 @@
     <ClCompile Include="particle.cpp" />
     <ClCompile Include="particleemitter.cpp" />
     <ClCompile Include="primitive.cpp" />
+    <ClCompile Include="puyodelete.cpp" />
     <ClCompile Include="puyopuyo.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="feild.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="particle.h" />
     <ClInclude Include="particleemitter.h" />
     <ClInclude Include="primitive.h" />
+    <ClInclude Include="puyodelete.h" />
     <ClInclude Include="puyopuyo.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="feild.h" />

@@ -11,5 +11,9 @@
 
 
 #define GRIDSIZE	1.0
+#define TATE		10
+#define YOKO		6
+#define NANAME		6
 
-
+static const int FRAME_BUFFER_WITDH = 900;		//!<フレームバッファのサイズ。
+static const int FRAME_BUFFER_HEIGHT = 900;		//!<フレームバッファのサイズ。

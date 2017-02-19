@@ -2,9 +2,11 @@
 #include "feild.h"
 #include "puyo.h"
 #include "puyopuyo.h"
+#include "keyboard.h"
 
 extern Puyo puyo;
 extern PuyoPuyo* nowPuyoPuyo;
+extern KeyBoard g_keyboard;
 
 
 //コンストラクタ
@@ -22,6 +24,44 @@ Feild::~Feild()
 	Release();
 }
 
+//void Feild::Con()
+//{
+//	if (g_keyboard.GetKeyTrigger('A'))
+//	{
+//		for (short y = TATE - 1; y > 0; y--)
+//		{
+//			for (short x = 0; x < YOKO; x++)
+//			{
+//				map[y][x] = NULL;
+//				Number[y][x] = NULL;
+//				puyo.isDead = true;
+//			}
+//		}
+//	}
+//}
+
+
+//ぷよが何個つながっているか探索する関数
+int Feild::Conbine(int x,int y,int num)
+{
+	//調べたい位置のpuyoの種類が違う又はすでにチェック済みの場合0を返す。
+	if (Number[y][x] != num || cmb[y][x] != 0)
+	{
+		return 0;
+	}
+
+
+	cmb[y][x] = 1;
+	int ret = 1;
+
+	if (y > 0)
+	{
+		ret += Conbine(x + 1, y, num);
+		ret += Conbine(x - 1, y, num);
+	}
+	return ret;
+}
+
 //初期化。
 void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 {
@@ -31,6 +71,7 @@ void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 		{
 			map[i][j] = MapState::None;
 			Number[i][j] = MapState::None;
+			cmb[i][j] = false;
 		}
 	}
 	model.Init(g_pd3dDevice, "court.x");
@@ -40,6 +81,34 @@ void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 //更新。
 void Feild::Update(PuyoPuyo* puyopuyo)
 {
+	//for (short y = TATE - 1; y > 0; y--)
+	//{
+	//	for (short x = 0; x < YOKO; x++)
+	//	{
+	//		int ret = 0, num = 0;
+	//		num = Number[y][x];
+	//		ret = Conbine(x, y,num);
+	//	}
+	//}
+
+	
+	for (short y = TATE - 1; y > 0; y--)
+	{
+		for (short x = 0; x < YOKO; x++)
+		{
+			if (Number[y][x] != 0)
+			{
+				int num;
+				num = Number[y][x];
+				int cnt = Conbine(x, y, num);
+				if (cnt >= 0)
+				{
+					puyo.isDead = true;
+				}
+			}
+		}
+	}
+
 	if (gameoverflg==true)
 	{
 		Puyo** puyo;
@@ -108,6 +177,7 @@ bool Feild::SetMap(int x, int y)
 	return false;
 }
 
+
 void Feild::SetMapNull(int x, int y)
 {
 	map[y][x] = MapState::None;
@@ -118,59 +188,3 @@ void Feild::SetNumMap(int x, int y,int num)
 	Number[y][x] = num;
 }
 
-int Feild::Conbine(int x,int y,int num)
-{
-	if (Number[y][x] != num)
-		return 0;
-	int cnt = 0;
-	if (y > 0)
-	{
-		cnt += Conbine(x + 1, y, num);
-		cnt += Conbine(x - 1, y, num);
-		cnt += Conbine(x, y + 1, num);
-		cnt += Conbine(x, y - 1, num);
-		return cnt;
-	}
-}
-
-bool Feild::Sakujo()
-{
-	//for (int i = TATE - 1; i >= 0; i--)
-	//{
-	//	for (int j = 0; j < YOKO; j++)
-	//	{
-	//		int ret = Conbine(j, i, Number[i][j]);
-	//		if (ret >= 4)
-	//		{
-	//			return true;
-	//		}
-	//		else
-	//		{
-	//			return false;
-	//		}
-	//	}
-	//}
-	int cnt = 0;
-	for (short i = TATE - 1; i <= 0; i--)
-	{
-		for (short j = 0; j < YOKO; j++)
-		{
-			if (Number[i][j] = Number[i][j + 1])
-			{
-				cnt++;
-				if (cnt <= 4)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-}

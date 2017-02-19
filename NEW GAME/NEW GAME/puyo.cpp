@@ -23,7 +23,6 @@ Puyo::Puyo()
 	rot = D3DXQUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
 	checkdownflg = false;
 	downmoveflg = true;
-
 }
 
 //デストラクタ
@@ -99,7 +98,7 @@ void Puyo::DownMove(int num)
 //右に移動させる関数
 void Puyo::Add_X(short num)
 {
-	if (ipos_X + num < YOKO)													//右側に行った時の判定
+	if (ipos_X + num < YOKO - 1)													//右側に行った時の判定
 	{
 		if (feild->GetMap(ipos_X + num + 1, ipos_Y) != MapState::PUYO)		//右にpuyoがない時の判定
 		{
@@ -122,15 +121,15 @@ void Puyo::Sub_X(short num)													//num :　現在のpuyoの要素番号？
 	}
 }
 
-//void Puyo::sakujo()
-//{
-//	static bool hoge = false;
-//	if (hoge)
-//	{
-//		feild->SetMapNull(ipos_X, ipos_Y);
-//		isDead = true;
-//	}
-//}
+void Puyo::sakujo()
+{
+	static bool hoge = false;
+	if (hoge)
+	{
+		feild->SetMapNull(ipos_X, ipos_Y);
+		isDead = true;
+	}
+}
 
 void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* name)
 {
@@ -146,10 +145,10 @@ void Puyo::Update(int num)
 	DownMove(number);
 	//sakujo();
 
-	if (downmoveflg == false)
-	{
-		isDead = feild->Sakujo();
-	}
+	//if (downmoveflg == false)
+	//{
+	//	isDead = feild->Sakujo();
+	//}
 
 	//ここでiposをpositionに変換する。
 	position.x = ipos_X * GRIDSIZE + GRIDSIZE * 0.5;
