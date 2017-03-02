@@ -8,6 +8,12 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory>
+#include <map>
+#include <vector>
+
+#include "system.h"
+
 
 
 #define GRIDSIZE	1.0
@@ -17,3 +23,4 @@
 
 static const int FRAME_BUFFER_WITDH = 900;		//!<フレームバッファのサイズ。
 static const int FRAME_BUFFER_HEIGHT = 900;		//!<フレームバッファのサイズ。
+

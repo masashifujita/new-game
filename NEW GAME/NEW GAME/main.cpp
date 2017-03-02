@@ -11,23 +11,50 @@
 #include "particleemitter.h"
 #include "primitive.h"
 #include "rendertarget.h"
+#include "bloom.h"
 
 
 Camera					g_camera;				//カメラ。
-std::list<PuyoPuyo*>	puyopuyoList;	//ぷよぷよのリスト。
+std::list<PuyoPuyo*>	puyopuyoList;			//ぷよぷよのリスト。
 PuyoPuyo*				nowPuyoPuyo = NULL;
 Feild					g_feild;
 Light					light;
 int						puyopuyoTimer = 120;
 KeyBoard				g_keyboard;
 ShadowMap				g_shadowmap;
+Bloom					bloom;
 Puyo					puyo;
-CParticleEmitter		g_particleEmitter;	//パーティクルエミッター
-CRenderTarget* mainRenderTarget;	//メインレンダリングターゲット。
-CPrimitive*	quadPrimitive;			//四角形の板ポリプリミティブ。
-LPD3DXEFFECT copyEffect;			//コピーを行うシェーダー。
-LPD3DXEFFECT monochromeEffect;		//モノクロフィルターをかけるシェーダー。
+CParticleEmitter		g_particleEmitter;		//パーティクルエミッター
+CRenderTarget*			mainRenderTarget;		//メインレンダリングターゲット。
+CPrimitive*				quadPrimitive;			//四角形の板ポリプリミティブ。
+LPD3DXEFFECT			copyEffect;				//コピーを行うシェーダー。
+LPD3DXEFFECT			monochromeEffect;		//モノクロフィルターをかけるシェーダー。
 
+//板ポリを描画
+void DrawQuadPrimitive()
+{
+	// 頂点ストリーム0番に板ポリの頂点バッファを設定する。
+	g_pd3dDevice->SetStreamSource(
+		0,												//頂点ストリームの番号。
+		quadPrimitive->GetVertexBuffer()->GetBody(),	//頂点バッファ。
+		0,												//頂点バッファの読み込みを開始するオフセットのバイト数。
+		//今回は先頭から読み込むので0でいい。
+		quadPrimitive->GetVertexBuffer()->GetStride()	//頂点一つ分のサイズ。単位はバイト。
+		);
+	// インデックスバッファを設定。
+	g_pd3dDevice->SetIndices(quadPrimitive->GetIndexBuffer()->GetBody());
+	// 頂点定義を設定する。
+	g_pd3dDevice->SetVertexDeclaration(quadPrimitive->GetVertexDecl());
+	//　準備が整ったので描画。
+	g_pd3dDevice->DrawIndexedPrimitive(
+		quadPrimitive->GetD3DPrimitiveType(),	//プリミティブの種類を指定する。
+		0,										//ベース頂点インデックス。0でいい。
+		0,										//最小の頂点インデックス。0でいい。
+		quadPrimitive->GetNumVertex(),			//頂点の数。
+		0,										//開始インデックス。0でいい。
+		quadPrimitive->GetNumPolygon()			//プリミティブの数。
+		);
+}
 //メインレンダリングターゲットを初期化
 void InitMainRenderTarget()
 {
@@ -36,7 +63,7 @@ void InitMainRenderTarget()
 		FRAME_BUFFER_WITDH,			//レンダリングターゲットの幅と高さはフレームバッファと同じにしておく。(必ずしも同じである必要はない！！！)
 		FRAME_BUFFER_HEIGHT,
 		1,							//ミップマップレベル。これは1でいい。ミップマップ覚えてますか？
-		D3DFMT_A8R8G8B8,			//レンダリングターゲットのフォーマット。今回はR8G8B8A8の32bitを指定する。
+		D3DFMT_A16B16G16R16F,		//レンダリングターゲットのフォーマット。16bitの浮動小数点バッファを指定する。
 		D3DFMT_D24S8,				//デプスステンシルバッファのフォーマット。一般的に16bitと24bitフォーマットが使われることが多い。今回は24bitフォーマットを使う。
 		D3DMULTISAMPLE_NONE,		//マルチサンプリングの種類。今回はマルチサンプリングは行わないのでD3DMULTISAMPLE_NONEでいい。
 		0							//マルチサンプリングの品質レベル。今回はマルチサンプリングは行わないので0でいい。
@@ -100,17 +127,10 @@ void CopyMainRTToCurrentRT()
 	g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 	// αブレンドもいらない。
 	g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	// 頂点ストリーム0番に板ポリの頂点バッファを設定する。
-	g_pd3dDevice->SetStreamSource(
-		0,												//頂点ストリームの番号。
-		quadPrimitive->GetVertexBuffer()->GetBody(),	//頂点バッファ。
-		0,												//頂点バッファの読み込みを開始するオフセットのバイト数。
-		//今回は先頭から読み込むので0でいい。
-		quadPrimitive->GetVertexBuffer()->GetStride()	//頂点一つ分のサイズ。単位はバイト。
-		);
 
-	//LPD3DXEFFECT shader = copyEffect;			//コピーを行うシェーダーを使う場合はこちら。
-	LPD3DXEFFECT shader = monochromeEffect;		//モノクロフィルターをかける場合はこちらを使用する。
+
+	LPD3DXEFFECT shader = copyEffect;			//18-3 コピーを行うシェーダーを使う場合はこちら。
+	//LPD3DXEFFECT shader = monochromeEffect;		//18-4 モノクロフィルターをかける場合はこちらを使用する。
 	//シェーダーを設定。
 	shader->SetTechnique("Default");
 	shader->Begin(NULL, D3DXFX_DONOTSAVESHADERSTATE);
@@ -119,19 +139,7 @@ void CopyMainRTToCurrentRT()
 	shader->SetTexture("g_tex", mainRenderTarget->GetTexture());
 	//定数レジスタへの変更をコミットする。
 	shader->CommitChanges();
-	// インデックスバッファを設定。
-	g_pd3dDevice->SetIndices(quadPrimitive->GetIndexBuffer()->GetBody());
-	// 頂点定義を設定する。
-	g_pd3dDevice->SetVertexDeclaration(quadPrimitive->GetVertexDecl());
-	//　準備が整ったので描画。
-	g_pd3dDevice->DrawIndexedPrimitive(
-		quadPrimitive->GetD3DPrimitiveType(),	//プリミティブの種類を指定する。
-		0,										//ベース頂点インデックス。0でいい。
-		0,										//最小の頂点インデックス。0でいい。
-		quadPrimitive->GetNumVertex(),			//頂点の数。
-		0,										//開始インデックス。0でいい。
-		quadPrimitive->GetNumPolygon()			//プリミティブの数。
-		);
+	DrawQuadPrimitive();
 	shader->EndPass();
 	shader->End();
 	// 変更したレンダリングステートを元に戻す。
@@ -141,18 +149,14 @@ void CopyMainRTToCurrentRT()
 //シェーダーをロード
 void LoadShaders()
 {
-	//コピーを行うシェーダーをロード。
+	//18-3 コピーを行うシェーダーをロード。
 	LPD3DXBUFFER  compileErrorBuffer = NULL;
 	HRESULT hr = D3DXCreateEffectFromFile(
 		g_pd3dDevice,
 		"Copy.fx",
 		NULL,
 		NULL,
-#ifdef _DEBUG
 		D3DXSHADER_DEBUG,
-#else
-		D3DXSHADER_SKIPVALIDATION,
-#endif
 		NULL,
 		&copyEffect,
 		&compileErrorBuffer
@@ -167,11 +171,7 @@ void LoadShaders()
 		"MonochromeFilter.fx",
 		NULL,
 		NULL,
-#ifdef _DEBUG
 		D3DXSHADER_DEBUG,
-#else
-		D3DXSHADER_SKIPVALIDATION,
-#endif
 		NULL,
 		&monochromeEffect,
 		&compileErrorBuffer
@@ -181,6 +181,8 @@ void LoadShaders()
 		std::abort();
 	}
 }
+
+
 
 void Init()
 {
@@ -192,9 +194,12 @@ void Init()
 	InitQuadPrimitive();
 	//シェーダーをロード。
 	LoadShaders();
+	
 
 	//ライトを初期化。
 	light.Init();
+
+	//パーティクル初期化
 	SParicleEmitParameter param;
 	param.texturePath = "star.png";
 	param.w = 0.5f;
@@ -208,6 +213,9 @@ void Init()
 	g_camera.Init();
 	//フィールドの初期化
 	g_feild.Init(g_pd3dDevice);
+	
+	bloom.Init("bloom.fx", g_pd3dDevice);
+
 }
 
 void Render()
@@ -234,12 +242,13 @@ void Render()
 
 	g_shadowmap.Draw();
 
-	g_particleEmitter.Render(g_camera.GetViewMatrix(), g_camera.GetProjectionMatrix());
+	//g_particleEmitter.Render(g_camera.GetViewMatrix(), g_camera.GetProjectionMatrix());
 
-	//プレーヤーを描画。
+	//puyopuyoを描画。
 	for (auto& puyopuyo : puyopuyoList)
 	{
-		puyopuyo->Render(g_pd3dDevice,
+		puyopuyo->Render(
+			g_pd3dDevice,
 			g_camera.GetViewMatrix(),
 			g_camera.GetProjectionMatrix(),
 			light.GetLightDirection(),
@@ -252,7 +261,8 @@ void Render()
 	}
 	 
 	//フィールドを描画
-	g_feild.Render(g_pd3dDevice,
+	g_feild.Render(
+		g_pd3dDevice,
 		g_camera.GetViewMatrix(),
 		g_camera.GetProjectionMatrix(),
 		light.GetLightDirection(),
@@ -262,6 +272,8 @@ void Render()
 		false,
 		true
 		);
+
+	bloom.Render();
 
 	//シーンの描画が完了したのでレンダリングターゲットをフレームバッファに戻す。
 	g_pd3dDevice->SetRenderTarget(0, frameBufferRT);
@@ -323,4 +335,5 @@ void Terminate()
 	}
 	//フィールドの解放
 	g_feild.Release();
+
 }

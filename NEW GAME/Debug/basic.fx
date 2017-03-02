@@ -71,15 +71,16 @@ VS_OUTPUT VSMain( VS_INPUT In )
 	Out.worldPos = pos;
 	pos = mul( pos, g_viewMatrix );			//ワールド空間からビュー空間に変換。
 	pos = mul( pos, g_projectionMatrix );	//ビュー空間から射影空間に変換。
+	if (g_isShadowReciever == 1)
+	{
+		Out.lightViewPos = mul(Out.worldPos, g_lightViewMatrix);
+		Out.lightViewPos = mul(Out.lightViewPos, g_lightProjectionMatrix);
+	}
 	Out.pos = pos;
 	Out.color = In.color;
 	Out.uv = In.uv;
-	if (g_isShadowReciever == 1)
-	{
-		Out.lightViewPos = mul(pos, g_lightViewMatrix);
-		Out.lightViewPos = mul(Out.lightViewPos, g_lightProjectionMatrix);
-	}
-	Out.normal = mul( In.normal, g_rotationMatrix );	//法線を回す。
+	Out.normal = mul(In.normal, g_rotationMatrix);	//法線を回す。
+
 	return Out;
 }
 /*!

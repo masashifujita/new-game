@@ -128,6 +128,7 @@ void Model::Render(
 	effect->End();
 }
 
+
 void Model::Release()
 {
 	//メッシュを開放。
