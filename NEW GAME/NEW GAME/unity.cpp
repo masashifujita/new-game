@@ -1,35 +1,69 @@
 #include "stdafx.h"
-#include "model.h"
+#include  "unity.h"
+#include "keyboard.h"
 
-extern Camera g_camera;
+extern KeyBoard g_keyboard;
 
-Model::Model()
+Unity::Unity()
 {
-	mesh = NULL;
-	textures = NULL;
-	numMaterial = 0;
-	effect = NULL;
+	n_map = NULL;
+	rot = D3DXQUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
+	position = D3DXVECTOR3(-3.0f, 3.0f, -5.0f);
+	scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 }
 
-Model::~Model()
-{
+Unity::~Unity(){}
 
+//void Unity::UpdateWorldMatrix(const D3DXVECTOR3& trans, const D3DXQUATERNION& rot, const D3DXVECTOR3& scale)
+//{
+//	D3DXMATRIX mTrans, mScale;
+//	D3DXMatrixScaling(&mScale, scale.x, scale.y, scale.z);
+//	D3DXMatrixTranslation(&mTrans, trans.x, trans.y, trans.z);
+//	D3DXMatrixRotationQuaternion(&rotation, &rot);
+//
+//	worldMatrix = mScale * rotation * mTrans;
+//
+//}
+
+void Unity::UpdateWorldMatrix(const D3DXVECTOR3& trans, const D3DXQUATERNION& rot, const D3DXVECTOR3& scale)
+{
+	D3DXMATRIX Trans, Scale;
+	D3DXMatrixScaling(&Scale, scale.x, scale.y, scale.z);
+	D3DXMatrixTranslation(&Trans, trans.x, trans.y, trans.z);
+	D3DXMatrixRotationQuaternion(&rotation, &rot);
+	D3DXMATRIX Rot;
+	D3DXMatrixRotationY(&Rot, targetAngleY);
+	rotation = rotation*Rot;
+	world = Scale*rotation*Trans;
 }
 
-void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
+void Unity::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 {
 	pd3dDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
-	//Xファイルをロード。
+
+	//法線マップをロード。
+	HRESULT hr = D3DXCreateTextureFromFileA(
+		pd3dDevice,
+		/*"utc_nomal.tga"*/"normal.jpg",
+		&normalMap
+		);
+	//D3DXCreateTextureFromFileAの戻り値をチェック。
+	if (FAILED(hr)) {
+		//D3DXCreateTextureFromFileAで失敗した。
+		MessageBox(NULL, "テクスチャのロードに失敗しました。指定したパスが正しいか確認をお願いします。", "エラー", MB_OK);
+	}
+	//モデルをロード。
+
 	LPD3DXBUFFER pD3DXMtrlBuffer;
 
 	//Xファイルのロード。
 	D3DXLoadMeshFromX(
-		model, 
+		"kyu_5.x",
 		D3DXMESH_SYSTEMMEM,
-		pd3dDevice, 
+		pd3dDevice,
 		NULL,
-		&pD3DXMtrlBuffer, 
-		NULL, 
+		&pD3DXMtrlBuffer,
+		NULL,
 		&numMaterial,
 		&mesh);
 
@@ -53,7 +87,7 @@ void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 	//シェーダーをコンパイル。
 	LPD3DXBUFFER  compileErrorBuffer = NULL;
 	//シェーダーをコンパイル。
-	HRESULT hr = D3DXCreateEffectFromFile(
+	HRESULT hl = D3DXCreateEffectFromFile(
 		pd3dDevice,
 		"basic.fx",
 		NULL,
@@ -63,14 +97,35 @@ void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 		&effect,
 		&compileErrorBuffer
 		);
-	if (hr != S_OK) {
+	if (hr != S_OK) 
+	{
 		MessageBox(NULL, (char*)(compileErrorBuffer->GetBufferPointer()), "error", MB_OK);
 		std::abort();
 	}
 	camera = &g_camera;
 }
 
-void Model::Render(
+void Unity::Update()
+{
+	if (GetAsyncKeyState('A')) 
+	{
+		//法線マップのオフ
+		if (normalMap){
+			n_map = normalMap;
+			normalMap = NULL;
+		}
+	}
+	else if (GetAsyncKeyState('S')) 
+	{
+		//法線マップのオン
+		if (n_map){
+			normalMap = n_map;
+		}
+	}
+	UpdateWorldMatrix(position, rot, scale);
+}
+
+void Unity::Render(
 	LPDIRECT3DDEVICE9 pd3dDevice,
 	D3DXMATRIX viewMatrix,
 	D3DXMATRIX projMatrix,
@@ -78,11 +133,8 @@ void Model::Render(
 	D3DXVECTOR4* diffuseLightColor,
 	D3DXVECTOR4	 ambientLight,
 	int numDiffuseLight,
-	D3DXMATRIX	World,
-	D3DXMATRIX	Rotation,
 	bool isDrawShadowMap,
-	bool isRecieveShadow
-	)
+	bool isRecieveShadow)
 {
 	//D3DXMatrixTranslation()
 	if (!isDrawShadowMap)
@@ -92,25 +144,19 @@ void Model::Render(
 	else
 	{
 		effect->SetTechnique("SkinModelRenderToShadowMap");
-		//return;
 	}
+
 	effect->Begin(NULL, D3DXFX_DONOTSAVESHADERSTATE);
 	effect->BeginPass(0);
 	//定数レジスタに設定するカラー。
 	D3DXVECTOR4 color(1.0f, 0.0f, 0.0f, 1.0f);
 	effect->SetInt("g_isShadowReciever", isRecieveShadow);
 	//ワールド行列の転送。
-	effect->SetMatrix("g_worldMatrix", &World);
+	effect->SetMatrix("g_worldMatrix", &world);
 	//ビュー行列の転送。
 	effect->SetMatrix("g_viewMatrix", &viewMatrix);			//ビュー行列を転送。
 	effect->SetMatrix("g_projectionMatrix", &projMatrix);	//プロジェクション行列の転送。
-	effect->SetMatrix("g_rotationMatrix", &Rotation);		//回転行列を転送。
-	//ライトの向きを転送。
-	effect->SetVectorArray("g_diffuseLightDirection", diffuseLightDirection, numDiffuseLight);
-	//ライトのカラーを転送。
-	effect->SetVectorArray("g_diffuseLightColor", diffuseLightColor, numDiffuseLight);
-	
-	effect->SetVector("g_eyePos", &(D3DXVECTOR4)camera->GetEyePt());
+	effect->SetMatrix("g_rotationMatrix", &rotation);		//回転行列を転送。
 
 	if (normalMap != NULL)
 	{
@@ -122,46 +168,33 @@ void Model::Render(
 		effect->SetInt("g_isHasNormalMap", 0);
 	}
 
+	//ライトの向きを転送。
+	effect->SetVectorArray("g_diffuseLightDirection", diffuseLightDirection, numDiffuseLight);
+	//ライトのカラーを転送。
+	effect->SetVectorArray("g_diffuseLightColor", diffuseLightColor, numDiffuseLight);
 	//環境光を設定。
 	effect->SetVector("g_ambientLight", &ambientLight);
+
+	effect->SetVector("g_eyePos", &(D3DXVECTOR4)camera->GetEyePt());
+
 	if (isRecieveShadow) {
 		effect->SetTexture("g_shadowMapTexture", g_shadowmap.GetTexture());
 		effect->SetMatrix("g_lightViewMatrix", &g_shadowmap.GetLightViewMatrix());
 		effect->SetMatrix("g_lightProjectionMatrix", &g_shadowmap.GetLightProjectionMatrix());
 	}
+
 	for (DWORD i = 0; i < numMaterial; i++)
 	{
 		effect->SetTexture("g_diffuseTexture", textures[i]);
 		effect->CommitChanges();						//この関数を呼び出すことで、データの転送が確定する。描画を行う前に一回だけ呼び出す。
-		
+
 		mesh->DrawSubset(i);
 	}
 	effect->EndPass();
 	effect->End();
 }
 
-
-void Model::Release()
+void Unity::Release()
 {
-	//メッシュを開放。
-	if (mesh != NULL) {
-		mesh->Release();
-		mesh = NULL;
-	}
-	//テクスチャを開放。
-	if (textures != NULL) {
-		for (unsigned int i = 0; i < numMaterial; i++) {
-			if (textures[i] != NULL) {
-				textures[i]->Release();
-				textures[i] = NULL;
-			}
-		}
-		delete[] textures;
-		textures = NULL;
-	}
-	//エフェクトを開放。
-	if (effect != NULL) {
-		effect->Release();
-		effect = NULL;
-	}
+
 }

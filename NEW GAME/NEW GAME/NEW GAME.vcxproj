@@ -98,6 +98,7 @@
     <ClCompile Include="shadowmap.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="system.cpp" />
+    <ClCompile Include="unity.cpp" />
     <ClCompile Include="vertexbuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +119,7 @@
     <ClInclude Include="shadowmap.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system.h" />
+    <ClInclude Include="unity.h" />
     <ClInclude Include="vertexbuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -12,6 +12,7 @@
 #include "primitive.h"
 #include "rendertarget.h"
 #include "bloom.h"
+#include "unity.h"
 
 
 Camera					g_camera;				//カメラ。
@@ -29,6 +30,7 @@ CRenderTarget*			mainRenderTarget;		//メインレンダリングターゲット。
 CPrimitive*				quadPrimitive;			//四角形の板ポリプリミティブ。
 LPD3DXEFFECT			copyEffect;				//コピーを行うシェーダー。
 LPD3DXEFFECT			monochromeEffect;		//モノクロフィルターをかけるシェーダー。
+Unity					unity;
 
 //板ポリを描画
 void DrawQuadPrimitive()
@@ -214,8 +216,11 @@ void Init()
 	//フィールドの初期化
 	g_feild.Init(g_pd3dDevice);
 	
+	//bloomの初期化
 	bloom.Init("bloom.fx", g_pd3dDevice);
 
+	//unityちゃん初期化
+	unity.Init(g_pd3dDevice);
 }
 
 void Render()
@@ -242,7 +247,21 @@ void Render()
 
 	g_shadowmap.Draw();
 
+	//パーティクル描画。
 	//g_particleEmitter.Render(g_camera.GetViewMatrix(), g_camera.GetProjectionMatrix());
+
+	//unityちゃん描画
+	unity.Render(
+		g_pd3dDevice,
+		g_camera.GetViewMatrix(),
+		g_camera.GetProjectionMatrix(),
+		light.GetLightDirection(),
+		light.GetLightColor(),
+		light.GetambientLight(),
+		LIGHT_NUM,
+		false,
+		false
+		);
 
 	//puyopuyoを描画。
 	for (auto& puyopuyo : puyopuyoList)
@@ -273,6 +292,7 @@ void Render()
 		true
 		);
 
+	//bloom描画
 	bloom.Render();
 
 	//シーンの描画が完了したのでレンダリングターゲットをフレームバッファに戻す。
@@ -302,6 +322,9 @@ void Update()
 
 	g_particleEmitter.Update();
 
+	//unityちゃん更新
+	unity.Update();
+
 	//ぷよぷよの生成
 	if (nowPuyoPuyo == NULL)
 	{
@@ -310,7 +333,7 @@ void Update()
 		puyopuyo->Init(g_pd3dDevice);
 		puyopuyoList.push_back(puyopuyo);
 	}
-	
+		
 	//ライトの更新。
 	light.Update();
 	
@@ -335,5 +358,8 @@ void Terminate()
 	}
 	//フィールドの解放
 	g_feild.Release();
+
+	//unityちゃん解放
+	unity.Release();
 
 }

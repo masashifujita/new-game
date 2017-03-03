@@ -22,6 +22,14 @@ public:
 	{
 		return ambientLight;
 	}
+	void SetDiffuseLightDirection(int lightNo, const D3DXVECTOR4& color)
+	{
+		diffuseLightColor[lightNo] = color;
+	}
+	const D3DXVECTOR4* GetDiffuseLightDirection() const
+	{
+		return diffuseLightDirection;
+	}
 
 private:
 	D3DXVECTOR4 			diffuseLightDirection[LIGHT_NUM];	//ƒ‰ƒCƒg‚Ì•ûŒüB
