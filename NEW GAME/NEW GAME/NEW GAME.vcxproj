@@ -87,7 +87,6 @@
     <ClCompile Include="particle.cpp" />
     <ClCompile Include="particleemitter.cpp" />
     <ClCompile Include="primitive.cpp" />
-    <ClCompile Include="puyodelete.cpp" />
     <ClCompile Include="puyopuyo.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="feild.cpp" />
@@ -98,7 +97,6 @@
     <ClCompile Include="shadowmap.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="system.cpp" />
-    <ClCompile Include="unity.cpp" />
     <ClCompile Include="vertexbuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -108,7 +106,6 @@
     <ClInclude Include="particle.h" />
     <ClInclude Include="particleemitter.h" />
     <ClInclude Include="primitive.h" />
-    <ClInclude Include="puyodelete.h" />
     <ClInclude Include="puyopuyo.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="feild.h" />
@@ -119,7 +116,6 @@
     <ClInclude Include="shadowmap.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system.h" />
-    <ClInclude Include="unity.h" />
     <ClInclude Include="vertexbuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

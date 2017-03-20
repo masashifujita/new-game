@@ -7,6 +7,7 @@
 extern Feild g_feild;
 extern KeyBoard g_keyboard;
 extern PuyoPuyo* nowPuyoPuyo;
+extern Puyo* puyo;
 
 
 //コンストラクタ
@@ -56,7 +57,7 @@ bool Puyo::Time()
 }
 
 //下に移動させる関数
-void Puyo::DownMove(int num)
+void Puyo::DownMove()
 {
 	int movespeed_y = 1;
 	if (Time() == true)
@@ -65,18 +66,20 @@ void Puyo::DownMove(int num)
 		ipos_Y += movespeed_y;
 
 		// あたり判定
-		if (feild->GetMap(ipos_X, ipos_Y) == MapState::PUYO)
+		if (feild->GetMap(ipos_X, ipos_Y) == true)
 		{
 			//現在のipos_Yの場所にpuyoがある場合の処理
 			downmoveflg = false;
 
 			//feild->SetMap(ipos_X,ipos_Y - 1):この処理でPuyoがあるipos_Yの一か所上にpuyoをセットする。
-			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y - 1));
+			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y - 1, isDead));
+			feild->SetPuyo(ipos_X, ipos_Y - 1, this);
+
 
 			//updataでpositionを決める計算をするのでipos_Yを一か所上に移動させる必要がある。
 			ipos_Y--;
 
-			g_feild.SetNumMap(ipos_X, ipos_Y, num);
+			//g_feild.SetNumMap(ipos_X, ipos_Y, num);
 						
 		}
 		else if (ipos_Y == TATE - 1)
@@ -84,12 +87,13 @@ void Puyo::DownMove(int num)
 			//現在のipos_Yの場所が一番下の段だった場合の処理
 			downmoveflg = false;
 
-			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y));
+			feild->SetGameOverDec(feild->SetMap(ipos_X, ipos_Y, isDead));
+			feild->SetPuyo(ipos_X, ipos_Y, this);
 			
-			if (feild->SetMap(ipos_X, ipos_Y) == false && downmoveflg == false)
-			{
-				g_feild.SetNumMap(ipos_X, ipos_Y,num);
-			}
+			//if (feild->SetMap(ipos_X, ipos_Y, isDead) == false && downmoveflg == false)
+			//{
+			//	g_feild.SetNumMap(ipos_X, ipos_Y,num);
+			//}
 		}
 	}
 
@@ -121,15 +125,15 @@ void Puyo::Sub_X(short num)													//num :　現在のpuyoの要素番号？
 	}
 }
 
-void Puyo::sakujo()
-{
-	static bool hoge = false;
-	if (hoge)
-	{
-		feild->SetMapNull(ipos_X, ipos_Y);
-		isDead = true;
-	}
-}
+//void Puyo::sakujo()
+//{
+//	static bool hoge = false;
+//	if (hoge)
+//	{
+//		feild->SetMapNull(ipos_X, ipos_Y);
+//		isDead = true;
+//	}
+//}
 
 void Puyo::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* name)
 {
@@ -142,8 +146,7 @@ void Puyo::Update(int num)
 {
 	number = num;
 	//DownMove()関数呼び出し
-	DownMove(number);
-	//sakujo();
+	DownMove();
 
 	//if (downmoveflg == false)
 	//{
@@ -171,18 +174,23 @@ void Puyo::Render(
 	bool isRecieveShadow
 	)
 {
-	model.Render(pd3dDevice,
-		viewMatrix,
-		projMatrix,
-		diffuseLightDirection,
-		diffuseLightColor,
-		ambientLight,
-		numDiffuseLight,
-		world,
-		rotation,
-		isDrawShadowMap,
-		isRecieveShadow
-		);
+	if (isDead == false)
+	{
+		model.Render(
+			pd3dDevice,
+			viewMatrix,
+			projMatrix,
+			diffuseLightDirection,
+			diffuseLightColor,
+			ambientLight,
+			numDiffuseLight,
+			world,
+			rotation,
+			isDrawShadowMap,
+			isRecieveShadow
+			);
+
+	}
 }
 
 //開放。

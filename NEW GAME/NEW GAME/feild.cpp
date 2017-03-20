@@ -4,7 +4,7 @@
 #include "puyopuyo.h"
 #include "keyboard.h"
 
-extern Puyo puyo;
+extern Puyo* puyo;
 extern PuyoPuyo* nowPuyoPuyo;
 extern KeyBoard g_keyboard;
 
@@ -24,43 +24,58 @@ Feild::~Feild()
 	Release();
 }
 
-//void Feild::Con()
-//{
-//	if (g_keyboard.GetKeyTrigger('A'))
-//	{
-//		for (short y = TATE - 1; y > 0; y--)
-//		{
-//			for (short x = 0; x < YOKO; x++)
-//			{
-//				map[y][x] = NULL;
-//				Number[y][x] = NULL;
-//				puyo.isDead = true;
-//			}
-//		}
-//	}
-//}
-
-
-//ぷよが何個つながっているか探索する関数
-int Feild::Conbine(int x,int y,int num)
+void Feild::sakujo()
 {
-	//調べたい位置のpuyoの種類が違う又はすでにチェック済みの場合0を返す。
-	if (Number[y][x] != num || cmb[y][x] != 0)
+	for (short y = TATE - 1; y >= 0; y--)
+	{
+		for (short x = 0; x < YOKO; x++)
+		{
+			if (deadflg[y][x] == true)
+			{
+				bool flg = true;
+				PuyoMap[y][x]->SetDead(flg);
+				PuyoMap[y][x] = nullptr;
+				map[y][x] = false;
+				//mapdown(x, y);
+				Number[y][x] = NULL;
+			}
+		}
+	}
+}
+
+
+void Feild::mapdown(int x, int y)
+{
+	if (map[y][x] == false && map[y - 1][x] == true)
+	{
+		map[y][x] = map[y - 1][x];
+		map[y - 1][x] = map[y - 2][x];
+	}
+}
+
+
+int Feild::tansaku(int x,int y,int num)
+{
+	if (Number[y][x] != num || cmb[y][x] != 0 || num == 0)
 	{
 		return 0;
 	}
 
-
 	cmb[y][x] = 1;
+	deadflg[y][x] = true;
 	int ret = 1;
 
 	if (y > 0)
 	{
-		ret += Conbine(x + 1, y, num);
-		ret += Conbine(x - 1, y, num);
+		ret += tansaku(x + 1, y, num);
+		ret += tansaku(x - 1, y, num);
+		ret += tansaku(x, y - 1, num);
+		ret += tansaku(x, y + 1, num);
 	}
 	return ret;
 }
+
+
 
 //初期化。
 void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
@@ -69,52 +84,75 @@ void Feild::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 	{
 		for (short j = 0; j < YOKO; j++)
 		{
-			map[i][j] = MapState::None;
+			map[i][j] = false;
 			Number[i][j] = MapState::None;
 			cmb[i][j] = false;
+			PuyoMap[i][j] = nullptr;
+			deadflg[i][j] = false;
 		}
 	}
 	model.Init(g_pd3dDevice, "court.x");
 	gameoverflg = false;
 }
 
-//更新。
+
+//更新
 void Feild::Update(PuyoPuyo* puyopuyo)
 {
-	//for (short y = TATE - 1; y > 0; y--)
+	//bool f = true;
+	//for (short x = 0; x < YOKO; x++)
 	//{
+	//	if (!map[9][x])
+	//	{
+	//		f = false;
+	//		break;
+	//	}
+	//}
+	//if (f)
+	//{
+	//	int y = 9;
 	//	for (short x = 0; x < YOKO; x++)
 	//	{
-	//		int ret = 0, num = 0;
-	//		num = Number[y][x];
-	//		ret = Conbine(x, y,num);
+	//		sakujo(x, y);
 	//	}
 	//}
 
-	
-	for (short y = TATE - 1; y > 0; y--)
+	if (puyopuyo->GetIsDownEnd() == false)
 	{
-		for (short x = 0; x < YOKO; x++)
+		for (short y = TATE - 1; y >= 0; y--)
 		{
-			if (Number[y][x] != 0)
+			for (short x = 0; x < YOKO; x++)
 			{
-				int num;
+				int num = 0, ret = 0;
 				num = Number[y][x];
-				int cnt = Conbine(x, y, num);
-				if (cnt >= 0)
+				ret = tansaku(x, y, num);
+				if (ret >= 4)
 				{
-					puyo.isDead = true;
+					sakujo();
 				}
+				//死亡フラグのリセット
+				deadflg[y][x] = false;
 			}
 		}
+
+		for (short i = 0; i < TATE; i++)
+		{
+			for (short j = 0; j < YOKO; j++)
+			{
+				//探索したか確認する配列のリセット。
+				cmb[i][j] = false;
+			}
+		}
+
 	}
 
+	
 	if (gameoverflg==true)
 	{
 		Puyo** puyo;
 		puyo = puyopuyo->GetPuyoArray();
 		for (short i = 0; i < 2; i++){
-			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y()) == MapState::PUYO)
+			if (GetMap(puyo[i]->GetiPos_X(), puyo[i]->GetiPos_Y()) == true)
 			{
 				// ゲームオーバー処理
 				MessageBox(nullptr, ("げーむおーばー"), ("Message"), MB_OK);
@@ -162,7 +200,7 @@ void Feild::Release()
 	model.Release();
 }
 
-int Feild::GetMap(int x, int y)
+bool Feild::GetMap(int x, int y)
 {
 	return map[y][x];
 }
@@ -177,14 +215,33 @@ bool Feild::SetMap(int x, int y)
 	return false;
 }
 
+bool Feild::SetMap(int x, int y, bool isDead)
+{
+	if (isDead == false)
+	{
+		isDead = true;
+	}
+	map[y][x] = isDead;
+	if (y <= 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+void Feild::SetPuyo(int x, int y, Puyo* puyo)
+{
+	PuyoMap[y][x] = puyo;
+	Number[y][x] = puyo->GetNum();
+}
 
 void Feild::SetMapNull(int x, int y)
 {
 	map[y][x] = MapState::None;
 }
 
-void Feild::SetNumMap(int x, int y,int num)
+void Feild::SetNullNum(int x, int y)
 {
-	Number[y][x] = num;
+	Number[y][x] = MapState::None;
 }
 

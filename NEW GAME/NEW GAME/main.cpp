@@ -12,7 +12,6 @@
 #include "primitive.h"
 #include "rendertarget.h"
 #include "bloom.h"
-#include "unity.h"
 
 
 Camera					g_camera;				//カメラ。
@@ -24,13 +23,12 @@ int						puyopuyoTimer = 120;
 KeyBoard				g_keyboard;
 ShadowMap				g_shadowmap;
 Bloom					bloom;
-Puyo					puyo;
+Puyo*					puyo;
 CParticleEmitter		g_particleEmitter;		//パーティクルエミッター
 CRenderTarget*			mainRenderTarget;		//メインレンダリングターゲット。
 CPrimitive*				quadPrimitive;			//四角形の板ポリプリミティブ。
 LPD3DXEFFECT			copyEffect;				//コピーを行うシェーダー。
 LPD3DXEFFECT			monochromeEffect;		//モノクロフィルターをかけるシェーダー。
-Unity					unity;
 
 //板ポリを描画
 void DrawQuadPrimitive()
@@ -151,7 +149,7 @@ void CopyMainRTToCurrentRT()
 //シェーダーをロード
 void LoadShaders()
 {
-	//18-3 コピーを行うシェーダーをロード。
+	//コピーを行うシェーダーをロード。
 	LPD3DXBUFFER  compileErrorBuffer = NULL;
 	HRESULT hr = D3DXCreateEffectFromFile(
 		g_pd3dDevice,
@@ -184,6 +182,18 @@ void LoadShaders()
 	}
 }
 
+void paramInit()
+{
+	//パーティクル初期化
+	SParicleEmitParameter param;
+	param.texturePath = "star.png";
+	param.w = 0.5f;
+	param.h = 0.5f;
+	param.intervalTime = 0.2f;
+	param.initSpeed = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	param.life = 5.0f;
+	g_particleEmitter.Init(param);
+}
 
 
 void Init()
@@ -201,15 +211,7 @@ void Init()
 	//ライトを初期化。
 	light.Init();
 
-	//パーティクル初期化
-	SParicleEmitParameter param;
-	param.texturePath = "star.png";
-	param.w = 0.5f;
-	param.h = 0.5f;
-	param.intervalTime = 0.2f;
-	param.initSpeed = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	param.life = 5.0f;
-	g_particleEmitter.Init(param);
+	paramInit();
 	
 	//カメラの初期化。
 	g_camera.Init();
@@ -219,8 +221,6 @@ void Init()
 	//bloomの初期化
 	bloom.Init("bloom.fx", g_pd3dDevice);
 
-	//unityちゃん初期化
-	unity.Init(g_pd3dDevice);
 }
 
 void Render()
@@ -249,19 +249,6 @@ void Render()
 
 	//パーティクル描画。
 	//g_particleEmitter.Render(g_camera.GetViewMatrix(), g_camera.GetProjectionMatrix());
-
-	//unityちゃん描画
-	unity.Render(
-		g_pd3dDevice,
-		g_camera.GetViewMatrix(),
-		g_camera.GetProjectionMatrix(),
-		light.GetLightDirection(),
-		light.GetLightColor(),
-		light.GetambientLight(),
-		LIGHT_NUM,
-		false,
-		false
-		);
 
 	//puyopuyoを描画。
 	for (auto& puyopuyo : puyopuyoList)
@@ -293,7 +280,7 @@ void Render()
 		);
 
 	//bloom描画
-	bloom.Render();
+	//bloom.Render();
 
 	//シーンの描画が完了したのでレンダリングターゲットをフレームバッファに戻す。
 	g_pd3dDevice->SetRenderTarget(0, frameBufferRT);
@@ -322,9 +309,6 @@ void Update()
 
 	g_particleEmitter.Update();
 
-	//unityちゃん更新
-	unity.Update();
-
 	//ぷよぷよの生成
 	if (nowPuyoPuyo == NULL)
 	{
@@ -342,7 +326,8 @@ void Update()
 	//フィールドの更新
 	g_feild.Update(nowPuyoPuyo);
 	//ぷよぷよが一番下、ぷよの上に落ちて止まった時nowPuyoPuyoをUpdateしないためNULLにする。
-	if (nowPuyoPuyo->GetIsDownEnd() == false){
+	if (nowPuyoPuyo->GetIsDownEnd() == false)
+	{
 		nowPuyoPuyo = NULL;
 	}
 	//カメラの更新
@@ -358,8 +343,5 @@ void Terminate()
 	}
 	//フィールドの解放
 	g_feild.Release();
-
-	//unityちゃん解放
-	unity.Release();
 
 }

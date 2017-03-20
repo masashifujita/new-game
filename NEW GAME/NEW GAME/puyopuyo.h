@@ -4,9 +4,12 @@
 
 class Puyo;
 
-#define MAX_HEIGHT 1	//puyoの個数(一列分)。
-#define MAX_WIDTH 2			//puyoの個数(一行分)。
-#define NAMELIST_MAX 5	// Puyoクラスのモデル読み込み時に使用するファイル名のリストの要素数
+namespace
+{
+	const int MAX_HEIGHT = 1;			//puyoの個数(一列分)。
+	const int MAX_WIDTH = 2;			//puyoの個数(一行分)。
+	const int NAMELIST_MAX = 5;			// Puyoクラスのモデル読み込み時に使用するファイル名のリストの要素数
+}
 
 class PuyoPuyo
 {
@@ -48,11 +51,6 @@ public:
 	Puyo** GetPuyoArray()
 	{
 		return &puyo[0][0];
-	}
-
-	int* GetNum()
-	{
-		return &num[0][0];
 	}
 
 private:

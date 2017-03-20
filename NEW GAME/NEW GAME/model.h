@@ -41,8 +41,8 @@ private:
 	DWORD					numMaterial;	//マテリアルの数。
 	ID3DXEffect*			effect;			//エフェクト。
 	Camera*					camera;
-	LPDIRECT3DTEXTURE9 normalMap = NULL;		//法線マップ。
-	D3DXMATRIX			worldMatrix;	//!<ワールド行列。
-	D3DXMATRIX			rotationMatrix;	//!<回転行列。
+	LPDIRECT3DTEXTURE9		normalMap = NULL;		//法線マップ。
+	D3DXMATRIX				worldMatrix;	//!<ワールド行列。
+	D3DXMATRIX				rotationMatrix;	//!<回転行列。
 
 };

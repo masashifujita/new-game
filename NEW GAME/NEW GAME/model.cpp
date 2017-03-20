@@ -9,6 +9,7 @@ Model::Model()
 	textures = NULL;
 	numMaterial = 0;
 	effect = NULL;
+	normalMap = NULL;
 }
 
 Model::~Model()
@@ -19,6 +20,18 @@ Model::~Model()
 void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 {
 	pd3dDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
+	//法線マップをロード
+	HRESULT hr = D3DXCreateTextureFromFileA(
+		pd3dDevice,
+		"normal.jpg",
+		&normalMap
+		);
+	//D3DXCreateTextureFromFileAの戻り値をチェック。
+	if (FAILED(hr)) {
+		//D3DXCreateTextureFromFileAで失敗した。
+		MessageBox(NULL, "テクスチャのロードに失敗しました。指定したパスが正しいか確認をお願いします。", "エラー", MB_OK);
+	}
+
 	//Xファイルをロード。
 	LPD3DXBUFFER pD3DXMtrlBuffer;
 
@@ -53,7 +66,7 @@ void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 	//シェーダーをコンパイル。
 	LPD3DXBUFFER  compileErrorBuffer = NULL;
 	//シェーダーをコンパイル。
-	HRESULT hr = D3DXCreateEffectFromFile(
+	HRESULT hl = D3DXCreateEffectFromFile(
 		pd3dDevice,
 		"basic.fx",
 		NULL,
@@ -63,7 +76,7 @@ void Model::Init(LPDIRECT3DDEVICE9 pd3dDevice,const char* model)
 		&effect,
 		&compileErrorBuffer
 		);
-	if (hr != S_OK) {
+	if (hl != S_OK) {
 		MessageBox(NULL, (char*)(compileErrorBuffer->GetBufferPointer()), "error", MB_OK);
 		std::abort();
 	}

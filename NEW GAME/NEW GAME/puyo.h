@@ -30,7 +30,7 @@ public:
 
 	void UpdateWorldMatrix(const D3DXVECTOR3& trans,const D3DXQUATERNION& rot,const D3DXVECTOR3& scale);
 
-	void DownMove(int);
+	void DownMove();
 
 	int GetiPos_X()
 	{
@@ -73,7 +73,20 @@ public:
 
 	void sakujo();
 
-	bool					isDead = false;
+	void SetDead(bool flg)
+	{
+		isDead = flg;
+	}
+
+	bool GetDead()
+	{
+		return isDead;
+	}
+
+	int GetNum()
+	{
+		return number;
+	}
 
 private:
 	D3DXVECTOR3				position;		//ç¿ïWÅB
@@ -99,4 +112,5 @@ private:
 	Feild*					feild;
 	bool					checkdownflg;
 	int						number = 0;
+	bool					isDead = false;
 };

@@ -23,7 +23,9 @@ PuyoPuyo::PuyoPuyo()
 	position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 }
 
-PuyoPuyo::~PuyoPuyo(){}
+PuyoPuyo::~PuyoPuyo()
+{
+}
 
 //ç∂âEÇ…à⁄ìÆÇ≥ÇπÇÈä÷êî
 void PuyoPuyo::SideMove()
@@ -56,6 +58,26 @@ void PuyoPuyo::SideMove()
 			}
 		}
 	}
+	//if (g_keyboard.GetKeyTrigger('K'))
+	//{
+	//	for (short row = 0; row < MAX_HEIGHT; row++)
+	//	{
+	//		for (short col = 0; col < MAX_WIDTH; col++)
+	//		{
+	//			puyo[row][col]->SetDead(true);
+	//		}
+	//	}
+	//}
+	//else if (g_keyboard.GetKeyTrigger('L'))
+	//{
+	//	for (short row = 0; row < MAX_HEIGHT; row++)
+	//	{
+	//		for (short col = 0; col < MAX_WIDTH; col++)
+	//		{
+	//			puyo[row][col]->SetDead(false);
+	//		}
+	//	}
+	//}
 }
 
 void PuyoPuyo::Init(LPDIRECT3DDEVICE9 pd3dDevice)
@@ -75,27 +97,30 @@ void PuyoPuyo::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 			int rnd;
 			srand((unsigned int)time(NULL));					//randÇÃèâä˙âª
 			rnd = rand() % NAMELIST_MAX;
-			if (strcmp("kyu_1.x", nameList[rnd]) == 0)
-			{
-				num[row][col] = 1;
-			}
-			else if (strcmp("kyu_2.x", nameList[rnd]) == 0)
-			{
-				num[row][col] = 2;
-			}
-			else if (strcmp("kyu_3.x", nameList[rnd]) == 0)
-			{
-				num[row][col] = 3;
-			}
-			else if (strcmp("kyu_4.x", nameList[rnd]) == 0)
-			{
-				num[row][col] = 4;
-			}
-			else if (strcmp("kyu_5.x", nameList[rnd]) == 0)
-			{
-				num[row][col] = 5;
-			}
-			this->puyo[row][col]->Init(pd3dDevice, nameList[rnd]);
+			//if (strcmp("kyu_1.x", nameList[rnd]) == 0)
+			//{
+			//	num[row][col] = 1;
+			//}
+			//else if (strcmp("kyu_2.x", nameList[rnd]) == 0)
+			//{
+			//	num[row][col] = 2;
+			//}
+			//else if (strcmp("kyu_3.x", nameList[rnd]) == 0)
+			//{
+			//	num[row][col] = 3;
+			//}
+			//else if (strcmp("kyu_4.x", nameList[rnd]) == 0)
+			//{
+			//	num[row][col] = 4;
+			//}
+			//else if (strcmp("kyu_5.x", nameList[rnd]) == 0)
+			//{
+			//	num[row][col] = 5;
+			//}
+			//this->puyo[row][col]->Init(pd3dDevice, nameList[rnd]);
+
+			num[row][col] = 1;
+			this->puyo[row][col]->Init(pd3dDevice, nameList[1]);
 		}
 	}
 }
@@ -103,23 +128,26 @@ void PuyoPuyo::Init(LPDIRECT3DDEVICE9 pd3dDevice)
 void PuyoPuyo::Update()
 {
 	SideMove();
+
+
+
 	bool MoveFlags[MAX_HEIGHT][MAX_WIDTH];
 	for (short row = 0; row < MAX_HEIGHT;row++)
 	{
 		for (short col = 0; col < MAX_WIDTH;col++){
-			if (!puyo[row][col]->isDead) 
+			if (!puyo[row][col]->GetDead()) 
 			{
 				puyo[row][col]->Update(num[row][col]);
 				MoveFlags[row][col] = puyo[row][col]->GetMoveFlg();
-				//g_feild.SetNumMap(puyo[row][col]->GetiPos_X() + 2, puyo[row][col]->GetiPos_Y() - 1, num[row][col]);
 			}
 		}
 	}
+
 	IsDownEnd = false;
 	for (short row = 0; row < MAX_HEIGHT; row++)
 	{
 		for (short col = 0; col < MAX_WIDTH; col++){
-			if (MoveFlags[row][col] && !puyo[row][col]->isDead){
+			if (MoveFlags[row][col] && !puyo[row][col]->GetDead()){
 				IsDownEnd = true;
 				break;
 			}
@@ -142,7 +170,7 @@ void PuyoPuyo::Render(
 	for (short row = 0; row < MAX_HEIGHT; row++)
 	{
 		for (short col = 0; col < MAX_WIDTH; col++){
-			if (!puyo[row][col]->isDead){
+			if (!puyo[row][col]->GetDead()){
 				puyo[row][col]->Render(
 					pd3dDevice,
 					viewMatrix,
